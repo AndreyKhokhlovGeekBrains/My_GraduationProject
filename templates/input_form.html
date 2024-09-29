@@ -1,0 +1,119 @@
+{% extends 'index.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<form action="/form/" method="post" class="my-action">
+    {% if flash_message %}
+        <div class="alert alert-success">
+            {{ flash_message }}
+        </div>
+    {% endif %}
+
+    <div class="action-name action-block">
+        <div class="description">
+            <i class="fa-solid fa-user"></i>
+            <label for="input-name">Имя</label>
+        </div>
+        <input
+            type="text"
+            id="input-name"
+            name="input-name"
+            required
+            autofocus
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-email action-block">
+        <div class="description">
+            <i class="fa-solid fa-envelope"></i>
+            <label for="input-email">Email</label>
+        </div>
+        <input
+            type="email"
+            id="input-email"
+            name="input-email"
+            required
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-password action-block">
+        <div class="description">
+            <i class="fa-solid fa-lock"></i>
+            <label for="input-password">Пароль</label>
+        </div>
+        <input
+            type="password"
+            id="input-password"
+            name="input-password"
+            required
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-age action-block">
+        <div class="description">
+            <i class="fa-brands fa-pagelines"></i>
+            <label for="input-age">Возраст</label>
+        </div>
+        <input
+            type="number"
+            id="input-age"
+            name="input-age"
+            required
+            min="6"
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-birthdate action-block">
+        <div class="description">
+            <i class="fa-solid fa-cake-candles"></i>
+            <label for="input-birthdate">Дата рождения</label>
+        </div>
+        <input
+            type="date"
+            id="input-birthdate"
+            name="input-birthdate"
+            required
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-phone action-block">
+        <div class="description">
+            <i class="fa-solid fa-phone"></i>
+            <label for="input-phone">Телефон</label>
+        </div>
+        <input
+            type="tel"
+            id="input-phone"
+            name="input-phone"
+            required
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-checkbox action-block">
+        <label for="input-checkbox">
+            <input
+                type="checkbox"
+                id="input-checkbox"
+                name="input-checkbox"
+                required
+            />
+            <i class="fa-regular fa-square-check unchecked"></i>
+            <i class="fa-solid fa-square-check checked"></i>
+            Согласиться с условиями
+        </label>
+    </div>
+
+    <button class="submit-button">
+        <span class="submit">Отправить</span>
+    </button>
+</form>
+
+{% endblock %}
