@@ -8,7 +8,9 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, EmailStr, Field, constr
 from typing import List
 from datetime import datetime, date
+# import bcrypt
 import httpx
+from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = "sqlite:///mydatabase.db"
 # DATABASE_URL = "postgresql://user:password@localhost/dbname"
@@ -30,8 +32,11 @@ users = sqlalchemy.Table(
     sqlalchemy.Column("created_at", sqlalchemy.DateTime, default=datetime.utcnow),
 )
 
-engine = sqlalchemy.create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = sqlalchemy.create_engine(DATABASE_URL, connect_args={"check_same_thread": False, "timeout": 30}) # This allows multiple threads to use the same connection
 metadata.create_all(engine)
+
+# Create a session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -57,6 +62,29 @@ class User(BaseModel):
     id: int
     name: str = Field(max_length=32)
     email: str = Field(max_length=128)
+    created_at: datetime
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+# Close connections after every transaction:
+async def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# WAL mode writes changes to a separate log file, which allows reads to happen concurrently, minimizing lock issues
+async def startup():
+    await database.connect()
+    # Enable WAL mode
+    async with database.transaction():
+        await database.execute("PRAGMA journal_mode=WAL;")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -88,10 +116,12 @@ async def submit_form(
         # Parse the birthdate from string to a date object
         birthdate = datetime.strptime(input_birthdate, '%Y-%m-%d').date()
 
+        input_password_hashed = bcrypt.hashpw(input_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         user_in = UserIn(
             name=input_name,
             email=input_email,
-            password=input_password,
+            # password=input_password,
+            password=input_password_hashed,
             age=input_age,
             birthdate=birthdate,
             phone=input_phone,
@@ -107,7 +137,7 @@ async def submit_form(
             response = await client.post("http://127.0.0.1:8000/users/", json=user_data)
             response.raise_for_status()  # Raise an error for bad responses
 
-        return RedirectResponse(url="/form/", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
     except ValueError as e:
         # Handle errors such as incorrect age, birthdate, or missing data
@@ -129,7 +159,7 @@ async def shutdown():
 @app.post("/users/", response_model=User)
 async def create_user(user: UserIn):
     # query = users.insert().values(name=user.name, email=user.email)
-    query = users.insert().values(**user.dict())
+    query = users.insert().values(**user.dict(exclude={'created_at'}))
     last_record_id = await database.execute(query) # The database.execute() method in FastAPI with the databases library returns the last inserted primary key value.
     return {**user.dict(), "id": last_record_id}
 
@@ -160,7 +190,13 @@ async def delete_user(user_id: int):
     return {'message': 'User deleted'}
 
 
+@app.get("/login/")
+async def form(request: Request):
+    return templates.TemplateResponse("login_form.html", {"request": request})
+
+
 # pip install databases[aiosqlite]
 # pip install uvicorn
 # pip install pydantic[email]
-# uvicorn models_01:app --reload
+# pip install python-multipart
+# uvicorn app.models_old:app --reload

@@ -5,12 +5,6 @@
 
 {% block content %}
 <form action="/form/" method="post" class="my-action">
-    {% if flash_message %}
-        <div class="alert alert-success">
-            {{ flash_message }}
-        </div>
-    {% endif %}
-
     <div class="action-name action-block">
         <div class="description">
             <i class="fa-solid fa-user"></i>
@@ -105,7 +99,7 @@
                 name="input-checkbox"
                 required
             />
-            <i class="fa-regular fa-square-check unchecked"></i>
+            <i class="fa-regular fa-square unchecked"></i>
             <i class="fa-solid fa-square-check checked"></i>
             Согласиться с условиями
         </label>
