@@ -1,0 +1,38 @@
+{% extends 'index.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<form action="/login/" method="post" class="my-action">
+    <div class="action-email action-block">
+        <div class="description">
+            <label for="input-email">Email</label>
+        </div>
+        <input
+            type="email"
+            id="input-email"
+            name="email"
+            required
+            class="input-box"
+        /><br/>
+    </div>
+
+    <div class="action-password action-block">
+        <div class="description">
+            <label for="input-password">Password</label>
+        </div>
+        <input
+            type="password"
+            id="input-password"
+            name="password"
+            required
+            class="input-box"
+        /><br/>
+    </div>
+
+    <button class="submit-button">
+        <span class="submit">Login</span>
+    </button>
+</form>
+{% endblock %}

@@ -10,6 +10,37 @@
   margin-right: 90px;
 }
 
+.dropdown-register {
+  text-decoration: none;
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  text-decoration: none;
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* .dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+} */
+
 .navbar .cart {
   position: relative;
   margin-right: 239px;
@@ -538,10 +569,6 @@
 }
 
 /* input form style */
-/* * {
-  margin: 0;
-  padding: 0;
-} */
 
 .my-action {
   margin: 20px 30px;
@@ -630,16 +657,16 @@
   align-items: center;
 }
 
-/* .action-checkbox input:checked {
+.action-checkbox input:checked {
   display: none;
-} */
+} 
 
-/* .action-checkbox input:checked + label::before {
+.action-checkbox input:checked + label::before {
   content: "\f14a";
   font-family: "Font Awesome 5 Free";
   font-weight: 400;
   margin-right: 14px;
-} */
+}
 
 /* *** *** *** */
 
@@ -662,12 +689,12 @@ input {
   transition: 0.6s;
 }
 
-#input-name:focus,
-#input-email:focus,
-#input-password:focus,
-#input-age:focus,
-#input-birthdate:focus,
-#input-phone:focus {
+#input-name:invalid:not(:focus),
+#input-email:invalid:not(:focus),
+#input-password:invalid:not(:focus),
+#input-age:invalid:not(:focus),
+#input-birthdate:invalid:not(:focus),
+#input-phone:invalid:not(:focus) {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 7px rgba(0, 123, 255, 0.5);
@@ -678,7 +705,7 @@ input {
 
 .input-box {
   border-radius: 4px;
-  border-width: 1px;
+  border-width: .5px;
 }
 
 @-webkit-keyframes shake-horizontal {

@@ -14,11 +14,14 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
+
     <link rel="stylesheet" href="../static/css/style.css" />
-      <link
+    
+    <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/fontawesome-free-6.2.1@6.2.1/css/all.min.css"
     />
+    
   </head>
   <body>
     <header class="header__container">
@@ -27,7 +30,7 @@
         data-bs-theme="dark"
       >
         <div class="container-fluid">
-          <a class="navbar-brand navbar-margin" href="#">
+          <a class="navbar-brand navbar-margin" href="/">
             <img src="../static/img/Logo.svg" alt="..." />
           </a>
 
@@ -93,10 +96,20 @@
                   </li>
                 </ul>
               </li>
-              <li>
-                <a class="nav-link menu-link" href="#">
+
+              <li class="nav-item dropdown">
+                <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <img src="../static/img/Forma2.svg" alt="..." />
                 </a>
+
+                <ul class="dropdown-menu custom-dropdown-menu" data-bs-theme="light">
+                  <li>
+                    <a class="dropdown-item fw-semibold" href="/login/">Login</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item fw-semibold" href="/form/">Register</a>
+                  </li>
+                </ul>
               </li>
 
               <li>
