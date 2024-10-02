@@ -55,24 +55,22 @@ async def submit_form(
             agreement=True if input_checkbox == 'on' else False
         )
 
-        # Convert the date to string in YYYY-MM-DD format
-        user_data = user_in.dict()
-        user_data['birthdate'] = user_data['birthdate'].isoformat()  # Convert date to string
+        # Call the create_user function
+        created_user = await create_user(user_in)
+        print(f"Created user: {created_user}")
 
-        # Send data to FastAPI
-        async with httpx.AsyncClient() as client:
-            response = await client.post("http://127.0.0.1:8000/users/", json=user_data)
-            response.raise_for_status()  # Raise an error for bad responses
-
-        return RedirectResponse(url="/")
+        # Redirect to the home page or another page after successful submission
+        return RedirectResponse(url="/", status_code=303)
+        # Or redirect to a page showing the new user's details
+        # return RedirectResponse(url=f"/user/{created_user['id']}", status_code=303)
 
     except ValueError as e:
         # Handle errors such as incorrect age, birthdate, or missing data
         return templates.TemplateResponse("input_form.html",
                                           {"request": request, "error": f'Ошибка валидации данных: {str(e)}'})
-    except httpx.HTTPStatusError as e:
-        return templates.TemplateResponse("input_form.html", {"request": request,
-                                                              "error": f'Ошибка при отправке данных на сервер: {str(e)}'})
+
+    except Exception as e:
+        return templates.TemplateResponse("input_form.html", {"request": request, "error": f'Ошибка: {str(e)}'})
 
 
 @router.get("/login/")

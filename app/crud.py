@@ -4,7 +4,7 @@ from .db import database
 
 
 async def create_user(user_in):
-    query = users.insert().values(**user_in.dict(exclude={'created_at'}))
+    query = users.insert().values(**user_in.dict(exclude={"created_at"}))
     last_record_id = await database.execute(query)
     return {**user_in.dict(), "id": last_record_id}
 
