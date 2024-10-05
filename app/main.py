@@ -23,3 +23,4 @@ async def shutdown():
     await disconnect_db()
 
 # uvicorn app.main:app --reload
+# git push -u origin dev1
