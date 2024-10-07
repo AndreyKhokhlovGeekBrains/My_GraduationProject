@@ -30,7 +30,7 @@ async def submit_form(
         input_name: str = Form(..., alias="input-name", description="Name of the user"),
         input_email: EmailStr = Form(..., alias="input-email", description="Email of the user"),
         input_password: str = Form(..., alias="input-password", description="Password of the user"),
-        input_age: int = Form(..., ge=1, alias="input-age", description="Age must be a positive integer"),
+        # input_age: int = Form(..., ge=1, alias="input-age", description="Age must be a positive integer"),
         input_birthdate: str = Form(..., alias="input-birthdate", description="Birthdate in YYYY-MM-DD format"),
         input_phone: str = Form(..., alias="input-phone", description="Phone number"),
         input_checkbox: str = Form(None, alias="input-checkbox")  # This will be 'on' if checked
@@ -49,7 +49,6 @@ async def submit_form(
             email=input_email,
             password=input_password,
             # password=input_password_hashed,
-            age=input_age,
             birthdate=birthdate,
             phone=input_phone,
             agreement=True if input_checkbox == 'on' else False
