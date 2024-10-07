@@ -14,7 +14,7 @@ users = Table(
     Column("birthdate", Date),
     Column("phone", String(20)),
     Column("agreement", Boolean),
-    Column("created_at", Date, server_default=func.now),
+    Column("created_at", Date, server_default=func.now()),
 )
 
 positions = Table(
@@ -23,7 +23,7 @@ positions = Table(
     Column("id", Integer, primary_key=True),
     Column("name", String(128)),
     Column("price", Integer),
-    Column("tags", ARRAY),
+    Column("tags", String),
     Column("created_at", Date, server_default=func.now())
 )
 

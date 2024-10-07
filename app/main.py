@@ -27,3 +27,4 @@ async def shutdown():
 
 # uvicorn app.main:app --reload
 # git push -u origin dev1
+# pip install -r requirements.txt
