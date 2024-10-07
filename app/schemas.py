@@ -18,3 +18,25 @@ class User(BaseModel):
     name: str
     email: str
     created_at: datetime
+
+
+class PositionIn(BaseModel):
+    name: constr(max_length=128) = Field(..., description="Name of the position")
+    price: int = Field(None, gt=0, description="Price of the position")
+    tags: list[str] = Field(None, description="Tags")
+
+class Position(BaseModel):
+    id: int
+    name: str
+    price: str
+    tags: list[str]
+    created_at: datetime
+
+
+class TokenIn(BaseModel):
+    token: str = Field(None, description="Token")
+
+
+class Token(BaseModel):
+    id: int
+    token: str

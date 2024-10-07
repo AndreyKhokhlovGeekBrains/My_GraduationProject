@@ -1,0 +1,13 @@
+{% extends 'index.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1>Вы уверены что хотите выйти?</h1>
+<form action="/logout/" method="post">
+    <label for="logout_button"></label>
+    <input type="button" id="logout_button" value="Выйти">
+</form>
+{% endblock %}
