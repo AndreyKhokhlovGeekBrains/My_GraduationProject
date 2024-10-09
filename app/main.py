@@ -28,3 +28,17 @@ async def shutdown():
 # uvicorn app.main:app --reload
 # git push -u origin dev1
 # pip install -r requirements.txt
+# docker-compose up
+# - ./pgdata:/var/lib/postgresql/data
+
+
+# import psycopg2
+#
+# try:
+#     conn = psycopg2.connect("postgresql://postgres:68064911@localhost:5432/postgres")
+#     print("Connection successful")
+#     conn.close()
+# except Exception as e:
+#     print("Connection failed")
+#     print(e)
+

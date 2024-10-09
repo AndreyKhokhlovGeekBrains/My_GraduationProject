@@ -578,7 +578,7 @@
 .my-action .action-block {
   display: flex;
   justify-content: space-between;
-
+  align-items: center;
   margin-top: 10px;
 }
 
@@ -594,6 +594,10 @@
 
 #input-email {
   margin-left: 21px;
+}
+
+#input-email-2 {
+  margin-left: 35px;
 }
 
 #input-password {
@@ -626,6 +630,12 @@
   cursor: pointer;
 
   transition: all 0.5s; 
+}
+
+.my-action .button-2 {
+  min-width: 130px;
+  max-height: 50px;
+  padding: 10px 0px;
 }
 
 .my-action .submit-button:hover {
