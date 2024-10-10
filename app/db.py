@@ -1,16 +1,13 @@
 # database configuration
-from databases import Database
+import databases
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
-# Use environment variable to switch between local and Docker environments
-DATABASE_URL = "postgresql://postgres:68064911@localhost:5432/postgres"
+DATABASE_URL = "sqlite:///mydatabase.db"
+# DATABASE_URL = "postgresql://user:password@localhost/dbname"
 
-database = Database(DATABASE_URL)
-metadata = sqlalchemy.MetaData()
+database = databases.Database(DATABASE_URL)
 
-engine = sqlalchemy.create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 async def connect_db():

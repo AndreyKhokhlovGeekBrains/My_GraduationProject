@@ -113,21 +113,17 @@
               </li>
 
               <li>
-                <a class="nav-link menu-link" href="#">
+                <a class="nav-link menu-link" href="/cart/get/">
                   <div class="cart">
                     <img class="cart-img1" src="../static/img/Forma3.svg" alt="..." />
-
-                    {% if count > 0 %}
                     <div class="ellipse">
                       <img
                         class="ellipse-items cart-img2"
                         src="../static/img/Ellipse.svg"
                         alt="..."
                       />
-                      <span class="ellipse-items count"> {{ count }} </span>
+                      <span class="ellipse-items count">{{ counter }}</span>
                     </div>
-                    {% endif %}
-                    
                   </div>
                 </a>
               </li>
@@ -171,32 +167,32 @@
         <div class="block2-pics">
           <div class="image-container">
             <img src="../static/img/1.svg" alt="..." class="pic img-original" />
-            <img src="../static/img/Hover.svg" alt="..." class="img-replacement" />
+            <a href="/cart/add/?position_id=1&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
           </div>
 
           <div class="image-container">
             <img src="../static/img/2.svg" alt="..." class="pic img-original" />
-            <img src="../static/img/Hover.svg" alt="..." class="img-replacement" />
+            <a href="/cart/add/?position_id=2&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
           </div>
 
           <div class="image-container">
             <img src="../static/img/3.svg" alt="..." class="pic img-original" />
-            <img src="../static/img/Hover.svg" alt="..." class="img-replacement" />
+            <a href="/cart/add/?position_id=3&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
           </div>
 
           <div class="image-container">
             <img src="../static/img/4.svg" alt="..." class="pic img-original" />
-            <img src="../static/img/Hover.svg" alt="..." class="img-replacement" />
+            <a href="/cart/add/?position_id=4&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
           </div>
 
           <div class="image-container">
             <img src="../static/img/5.svg" alt="..." class="pic img-original" />
-            <img src="../static/img/Hover.svg" alt="..." class="img-replacement" />
+            <a href="/cart/add/?position_id=5&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
           </div>
 
           <div class="image-container">
             <img src="../static/img/6.svg" alt="..." class="pic img-original" />
-            <img src="../static/img/Hover.svg" alt="..." class="img-replacement" />
+            <a href="/cart/add/?position_id=6&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
           </div>
         </div>
       </div>

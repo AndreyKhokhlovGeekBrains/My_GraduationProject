@@ -71,3 +71,10 @@ def redis_clear_cart(user_email):
     if client.exists(user_email):
         client.delete(user_email)
     return True
+
+def get_unique_positions(user_id):
+    if client.exists(user_id):
+        key_type = client.type(user_id)
+        if key_type == b'hash':
+            return client.hlen(user_id)
+    return 0
