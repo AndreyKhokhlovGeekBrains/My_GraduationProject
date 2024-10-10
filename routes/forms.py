@@ -15,16 +15,17 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
+count = 0
+
 
 @router.get("/")
 async def html_index(request: Request):
-    count = 2
     return templates.TemplateResponse("index.html", {"request": request, "count": count})
 
 
 @router.get("/form/")
 async def form(request: Request):
-    return templates.TemplateResponse("input_form.html", {"request": request})
+    return templates.TemplateResponse("input_form.html", {"request": request, "count": count})
 
 
 @router.post("/form/")
@@ -77,7 +78,7 @@ async def submit_form(
 
 @router.get("/login/")
 async def login_page(request: Request):
-    return templates.TemplateResponse("login_form.html", {"request": request})
+    return templates.TemplateResponse("login_form.html", {"request": request, "count": count})
 
 
 @router.post("/login/")
