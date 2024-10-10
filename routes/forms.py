@@ -15,15 +15,17 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
+count = 0
+
 
 @router.get("/")
 async def html_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request, "count": count})
 
 
 @router.get("/form/")
 async def form(request: Request):
-    return templates.TemplateResponse("input_form.html", {"request": request})
+    return templates.TemplateResponse("input_form.html", {"request": request, "count": count})
 
 
 @router.post("/form/")
@@ -58,7 +60,7 @@ async def submit_form(
 
         # Call the create_user function
         await create_user(user_in)
-        # print(f"Created user: {created_user}")
+        print(f"Created user: {user_in}")
 
         # Redirect to the home page or another page after successful submission
         return RedirectResponse(url="/", status_code=303)
@@ -73,9 +75,11 @@ async def submit_form(
     except Exception as e:
         return templates.TemplateResponse("input_form.html", {"request": request, "error": f'Ошибка: {str(e)}'})
 
+
 @router.get("/login/")
 async def login_page(request: Request):
-    return templates.TemplateResponse("login_form.html", {"request": request})
+    return templates.TemplateResponse("login_form.html", {"request": request, "count": count})
+
 
 @router.post("/login/")
 async def login_user(request: Request):
@@ -94,11 +98,13 @@ async def login_user(request: Request):
     response.set_cookie(key="JWT", value=token)
     return response
 
+
 @router.get("/logout/")
 async def logout_page(request: Request):
     if request.cookies.get("JWT"):
         return templates.TemplateResponse("logout.html", {"request": request})
     return RedirectResponse(url="/login/")
+
 
 @router.post("/logout/")
 async def logout(request: Request):
@@ -108,6 +114,7 @@ async def logout(request: Request):
     response.delete_cookie("JWT")
     await add_token_to_blacklist(token_in=token_in)
     return RedirectResponse(url="/")
+
 
 @router.get("/test_confident1/")
 async def confident1(request: Request):
