@@ -116,18 +116,14 @@
                 <a class="nav-link menu-link" href="/cart/get/">
                   <div class="cart">
                     <img class="cart-img1" src="../static/img/Forma3.svg" alt="..." />
-
-                    {% if count > 0 %}
                     <div class="ellipse">
                       <img
                         class="ellipse-items cart-img2"
                         src="../static/img/Ellipse.svg"
                         alt="..."
                       />
-                      <span class="ellipse-items count"> {{ count }} </span>
+                      <span class="ellipse-items count">{{ counter }}</span>
                     </div>
-                    {% endif %}
-                    
                   </div>
                 </a>
               </li>

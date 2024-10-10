@@ -17,15 +17,58 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
-<<<<<<< HEAD
 count = 0
 
-
-@router.get("/")
-async def html_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "count": count})
-=======
 import hashlib
+
+
+
+def hash_password(password: str) -> str:
+    # Кодирование пароля в байты
+    password_bytes = password.encode('utf-8')
+
+    # Создание объекта хеширования
+    hash_object = hashlib.sha256()
+
+    # Обновление объекта хеширования
+    hash_object.update(password_bytes)
+
+    # Получение хеша
+    hashed_password = hash_object.hexdigest()
+
+    return hashed_password
+
+
+def verify_password(stored_password: str, input_password: str) -> bool:
+    # Хеширование входящего пароля
+    hashed_input_password = hash_password(input_password)
+
+    # Сравнение хешей
+    return hashed_input_password == stored_password
+
+
+def hash_password(password: str) -> str:
+    # Кодирование пароля в байты
+    password_bytes = password.encode('utf-8')
+
+    # Создание объекта хеширования
+    hash_object = hashlib.sha256()
+
+    # Обновление объекта хеширования
+    hash_object.update(password_bytes)
+
+    # Получение хеша
+    hashed_password = hash_object.hexdigest()
+
+    return hashed_password
+
+
+def verify_password(stored_password: str, input_password: str) -> bool:
+    # Хеширование входящего пароля
+    hashed_input_password = hash_password(input_password)
+
+    # Сравнение хешей
+    return hashed_input_password == stored_password
 
 
 def hash_password(password: str) -> str:
@@ -57,9 +100,8 @@ async def html_index(request: Request):
     if token:
         decoded_token = decode_token(token)
         positions_amount = get_unique_positions(decoded_token.id)
-        return templates.TemplateResponse("index.html", {"request": request, "counter": positions_amount})
+        return templates.TemplateResponse("index.html", {"request": request, "count": positions_amount})
     return templates.TemplateResponse("index.html", {"request": request})
->>>>>>> ea4a09d2c20a4d9611a5515123ba27b2c23e7a21
 
 
 @router.get("/form/")
@@ -100,7 +142,7 @@ async def submit_form(
         # Удалить этот коментарий1
         # Call the create_user function
         await create_user(user_in)
-        print(f"Created user: {user_in}")
+        # print(f"Created user: {created_user}")
 
         # Redirect to the home page or another page after successful submission
         return RedirectResponse(url="/", status_code=303)
@@ -114,11 +156,9 @@ async def submit_form(
     except Exception as e:
         return templates.TemplateResponse("input_form.html", {"request": request, "error": f'Ошибка: {str(e)}'})
 
-
 @router.get("/login/")
 async def login_page(request: Request):
-    return templates.TemplateResponse("login_form.html", {"request": request, "count": count})
-
+    return templates.TemplateResponse("login_form.html", {"request": request, "count": positions_amount})
 
 @router.post("/login/")
 async def login_user(request: Request):
@@ -145,13 +185,11 @@ async def login_user(request: Request):
     except TypeError:
         return {'msg': "user not exists"}
 
-
 @router.get("/logout/")
 async def logout_page(request: Request):
     if request.cookies.get("JWT"):
-        return templates.TemplateResponse("logout.html", {"request": request})
+        return templates.TemplateResponse("logout.html", {"request": request, "count": count})
     return RedirectResponse(url="/login/")
-
 
 @router.post("/logout/")
 async def logout(request: Request):
@@ -161,7 +199,6 @@ async def logout(request: Request):
     response.delete_cookie("JWT")
     await add_token_to_blacklist(token_in=token_in)
     return RedirectResponse(url="/")
-
 
 @router.get("/test_confident1/")
 async def confident1(request: Request):
