@@ -15,7 +15,7 @@
       crossorigin="anonymous"
     />
 
-    <link rel="stylesheet" href="../static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
     
     <link
       rel="stylesheet"
@@ -31,7 +31,7 @@
       >
         <div class="container-fluid">
           <a class="navbar-brand navbar-margin" href="/">
-            <img src="../static/img/Logo.svg" alt="..." />
+            <img src="/static/img/Logo.svg" alt="..." />
           </a>
 
           <div class="navbar-items" id="navbarNavDropdown">
@@ -52,46 +52,46 @@
                   <li>
                     <a
                       class="dropdown-item font-weight-bold menu-item fw-bold"
-                      href="#"
-                      >MAN</a
+                      href="/category/man#category-title"
                     >
+                      MAN
+                    </a>
 
                     <ul class="list-unstyled" style="padding-left: 20px">
-                      <li><a class="dropdown-item" href="#">Accessories</a></li>
-                      <li><a class="dropdown-item" href="#">Bags</a></li>
-                      <li><a class="dropdown-item" href="#">Denim</a></li>
-                      <li><a class="dropdown-item" href="#">T-Shirts</a></li>
+                      <li><a class="dropdown-item" href="/category/man/accessories#category-title">Accessories</a></li>
+                      <li><a class="dropdown-item" href="/category/man/bags#category-title">Bags</a></li>
+                      <li><a class="dropdown-item" href="/category/man/denim#category-title">Denim</a></li>
+                      <li><a class="dropdown-item" href="/category/man/tshirts#category-title">T-Shirts</a></li>
                     </ul>
                   </li>
 
                   <li>
-                    <a class="dropdown-item menu-item fw-bold" href="#"
-                      >WOMAN</a
+                    <a class="dropdown-item menu-item fw-bold" href="/category/women#category-title"
                     >
+                      WOMEN
+                    </a>
 
                     <ul class="list-unstyled" style="padding-left: 20px">
-                      <li><a class="dropdown-item" href="#">Accessories</a></li>
-                      <li>
-                        <a class="dropdown-item" href="#">Jackets & Coats</a>
-                      </li>
-                      <li><a class="dropdown-item" href="#">Polos</a></li>
-                      <li><a class="dropdown-item" href="#">T-Shirts</a></li>
-                      <li><a class="dropdown-item" href="#">Shirts</a></li>
+                      <li><a class="dropdown-item" href="/category/women/accessories#category-title">Accessories</a></li>
+                      <li><a class="dropdown-item" href="/category/women/jackets_coats#category-title">Jackets & Coats</a></li>
+                      <li><a class="dropdown-item" href="/category/women/polos#category-title">Polos</a></li>
+                      <li><a class="dropdown-item" href="/category/women/tshirts#category-title">T-Shirts</a></li>
+                      <li><a class="dropdown-item" href="/category/women/shirts#category-title">Shirts</a></li>
                     </ul>
                   </li>
 
                   <li>
-                    <a class="dropdown-item menu-item fw-bold" href="#">KIDS</a>
+                    <a class="dropdown-item menu-item fw-bold" href="/category/kids#category-title">
+                      KIDS
+                    </a>
 
                     <ul class="list-unstyled" style="padding-left: 20px">
-                      <li><a class="dropdown-item" href="#">Accessories</a></li>
-                      <li>
-                        <a class="dropdown-item" href="#">Jackets & Coats</a>
-                      </li>
-                      <li><a class="dropdown-item" href="#">Polos</a></li>
-                      <li><a class="dropdown-item" href="#">T-Shirts</a></li>
-                      <li><a class="dropdown-item" href="#">Shirts</a></li>
-                      <li><a class="dropdown-item" href="#">Bags</a></li>
+                      <li><a class="dropdown-item" href="/category/kids/accessories#category-title">Accessories</a></li>
+                      <li><a class="dropdown-item" href="/category/kids/jackets_coats#category-title">Jackets & Coats</a></li>
+                      <li><a class="dropdown-item" href="/category/kids/polos#category-title">Polos</a></li>
+                      <li><a class="dropdown-item" href="/category/kids/tshirts#category-title">T-Shirts</a></li>
+                      <li><a class="dropdown-item" href="/category/kids/shirts#category-title">Shirts</a></li>
+                      <li><a class="dropdown-item" href="/category/kids/bags#category-title">Bags</a></li>
                     </ul>
                   </li>
                 </ul>
@@ -99,7 +99,7 @@
 
               <li class="nav-item dropdown">
                 <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <img src="../static/img/Forma2.svg" alt="..." />
+                  <img src="/static/img/Forma2.svg" alt="..." />
                 </a>
 
                 <ul class="dropdown-menu custom-dropdown-menu" data-bs-theme="light">
@@ -115,15 +115,19 @@
               <li>
                 <a class="nav-link menu-link" href="/cart/get/">
                   <div class="cart">
-                    <img class="cart-img1" src="../static/img/Forma3.svg" alt="..." />
+                    <img class="cart-img1" src="/static/img/Forma3.svg" alt="..." />
+
+                    {% if count > 0 %}
                     <div class="ellipse">
                       <img
                         class="ellipse-items cart-img2"
-                        src="../static/img/Ellipse.svg"
+                        src="/static/img/Ellipse.svg"
                         alt="..."
                       />
-                      <span class="ellipse-items count">{{ counter }}</span>
+                      <span class="ellipse-items count"> {{ count }} </span>
                     </div>
+                    {% endif %}
+                    
                   </div>
                 </a>
               </li>
@@ -137,11 +141,11 @@
     <main class="main__container">
       <div class="block0">
         <div class="block0-1">
-          <img class="block0-img" src="../static/img/Layer_57.svg" alt="..." />
+          <img class="block0-img" src="/static/img/Layer_57.svg" alt="..." />
         </div>
 
         <div class="text-block">
-          <img src="../static/img/Rectangle.svg" alt="..." />
+          <img src="/static/img/Rectangle.svg" alt="..." />
           <div class="text-items">
             <h1>THE BRAND</h1>
             <h2>OF LUXERIOUS <span>FASHION</span></h2>
@@ -151,54 +155,65 @@
 
       <div class="block1">
         <div class="block1-1">
-          <img class="for__women" src="../static/img/for_women.svg" alt="..." />
-          <img class="for__men" src="../static/img/for_men.svg" alt="..." />
-          <img class="for__kids" src="../static/img/for_kids.svg" alt="..." />
+          <a class="nav__deal" href="#">
+            <img class="for__women" src="/static/img/for_women.svg" alt="..." />
+          </a>
+          <a class="nav__deal" href="#">
+            <img class="for__men" src="/static/img/for_men.svg" alt="..." />
+          </a>
+          <a class="nav__deal" href="#">
+            <img class="for__kids" src="/static/img/for_kids.svg" alt="..." />
+          </a>
         </div>
 
         <div class="block1-2">
-          <img class="accesories" src="../static/img/ACCESORIES.svg" alt="..." />
+          <img class="accesories" src="/static/img/ACCESORIES.svg" alt="..." />
         </div>
       </div>
 
+      
       <div class="block2">
-        <h2>Featured Items</h2>
-        <p>Shop for items based on what we featured in this week</p>
+        <h2 id="category-title">
+          {% if show_all_items %}
+            All products
+          {% elif item_type %}
+            Items for {{ gender }} - {{ item_type | replace("_", " & ") }}
+          {% elif gender %}
+            Items for {{ gender }}
+          {% else %}
+            Featured Items
+          {% endif %}
+        </h2>
+        <p>
+          {% if show_all_items %}
+            Shop for our products
+          {% elif item_type %}
+            Shop for {{ gender }}'s {{ item_type | replace("_", " & ") }} in this category
+          {% elif gender %}
+            Shop for {{ gender }}'s items
+          {% else %}
+            Shop for items based on what we featured in this week
+          {% endif %}
+        </p>
         <div class="block2-pics">
-          <div class="image-container">
-            <img src="../static/img/1.svg" alt="..." class="pic img-original" />
-            <a href="/cart/add/?position_id=1&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
-          </div>
-
-          <div class="image-container">
-            <img src="../static/img/2.svg" alt="..." class="pic img-original" />
-            <a href="/cart/add/?position_id=2&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
-          </div>
-
-          <div class="image-container">
-            <img src="../static/img/3.svg" alt="..." class="pic img-original" />
-            <a href="/cart/add/?position_id=3&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
-          </div>
-
-          <div class="image-container">
-            <img src="../static/img/4.svg" alt="..." class="pic img-original" />
-            <a href="/cart/add/?position_id=4&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
-          </div>
-
-          <div class="image-container">
-            <img src="../static/img/5.svg" alt="..." class="pic img-original" />
-            <a href="/cart/add/?position_id=5&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
-          </div>
-
-          <div class="image-container">
-            <img src="../static/img/6.svg" alt="..." class="pic img-original" />
-            <a href="/cart/add/?position_id=6&amount=1"><img src="../static/img/Hover.svg" alt="..." class="img-replacement" /></a>
-          </div>
+            {% for item in featured_items %}
+            <div class="image-container">
+              
+                <img src="{{ item.picture }}" alt="{{ item.title }}" class="pic img-original" />
+                <img src="/static/img/Hover.svg" alt="..." class="img-replacement" />
+              
+                <h3 class="item-description">{{ item.title }}</h3>
+                <p class="item-description description">{{ item.description }}</p>
+                <h2 class="item-description price">{{ item.price }}</h2>
+              
+            </div>   
+            {% endfor %}
         </div>
-      </div>
+    </div>
+    
 
-      <div class="button btn btn-outline-danger" onclick="handleButtonClick()">
-        Browse All Product
+      <div onclick="handleButtonClick()">
+        <a class="button btn btn-outline-danger" href="/all#category-title">Browse All Products</a>
       </div>
     </main>
     {% endblock %}
@@ -206,7 +221,7 @@
     <footer class="footer__container">
       <div class="block-1">
         <div class="block-1_1 footer-block">
-          <img src="../static/img/Footer_pic1.svg" alt="..." />
+          <img src="/static/img/Footer_pic1.svg" alt="..." />
           <h3>Free Delivery</h3>
           <p>
             Worldwide delivery on all. Authorit tively morph <br />
@@ -215,7 +230,7 @@
         </div>
 
         <div class="block-1_1 footer-block">
-          <img src="../static/img/Footer_pic2.svg" alt="..." />
+          <img src="/static/img/Footer_pic2.svg" alt="..." />
           <h3>Sales & discounts</h3>
           <p>
             Worldwide delivery on all. Authorit tively morph <br />
@@ -224,7 +239,7 @@
         </div>
 
         <div class="block-1_1 footer-block">
-          <img src="../static/img/Footer_pic3.svg" alt="..." />
+          <img src="/static/img/Footer_pic3.svg" alt="..." />
           <h3>Quality assurance</h3>
           <p>
             Worldwide delivery on all. Authorit tively morph <br />
@@ -235,7 +250,7 @@
 
       <div class="block-2">
         <div class="block-2_1 footer-block-2">
-          <img src="../static/img/Footer_block2_img1.svg" alt="..." />
+          <img src="/static/img/Footer_block2_img1.svg" alt="..." />
           <p>
             “Vestibulum quis porttitor dui! Quisque<br />nunc mi, a pulvinar
             purus<br />condimentum“
@@ -246,28 +261,30 @@
           <h3>SUBSCRIBE</h3>
           <h5>FOR OUR NEWLETTER AND PROMOTION</h5>
 
-          <div class="input-group mb-3">
+          <form action="/subscribe" method="POST" class="input-group mb-3">
             <input
-              type="text"
+              type="email"
               class="form-control"
+              name="email"
               placeholder="Enter Your Email"
               aria-label="Recipient's username"
               aria-describedby="button-addon2"
+              required
             />
             <button
               class="btn btn-outline-secondary"
-              type="button"
+              type="submit"
               id="button-addon2"
             >
               Subscribe
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
       <div class="block-3">
         <p>© 2021 Brand All Rights Reserved.</p>
-        <img src="../static/img/Footer_block3_img.svg" alt="..." />
+        <img src="/static/img/Footer_block3_img.svg" alt="..." />
       </div>
     </footer>
 

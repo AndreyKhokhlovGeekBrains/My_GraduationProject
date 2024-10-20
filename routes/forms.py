@@ -1,15 +1,17 @@
 # form handling routes
-from fastapi import APIRouter, Request, Form, Response, Depends
+from fastapi import APIRouter, Request, Form, Response, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional
 
 from cart.redis_client import get_unique_positions
 import hashlib
 from cookie.jwt import create_token, decode_token
-from app.schemas import UserIn, TokenIn
+from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory
 from pydantic import EmailStr
-from app.crud import create_user, get_user_by_login_data, add_token_to_blacklist
-import httpx
+from app.crud import (create_user, get_user_by_login_data, add_token_to_blacklist,
+                      add_newsletter_mail, add_item, load_featured_items, get_items_by_category, get_all_items)
+import shutil
 # import bcrypt
 from datetime import datetime
 
@@ -19,89 +21,88 @@ templates = Jinja2Templates(directory="templates")
 
 count = 0
 
-import hashlib
+
+@router.get("/all")
+async def get_all(request: Request):
+    items_in = await get_all_items()
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "featured_items": items_in,
+        "count": count,
+        "show_all_items": True
+    })
 
 
-
-def hash_password(password: str) -> str:
-    # Кодирование пароля в байты
-    password_bytes = password.encode('utf-8')
-
-    # Создание объекта хеширования
-    hash_object = hashlib.sha256()
-
-    # Обновление объекта хеширования
-    hash_object.update(password_bytes)
-
-    # Получение хеша
-    hashed_password = hash_object.hexdigest()
-
-    return hashed_password
+@router.get("/category/{gender}")
+async def get_items_by_gender(request: Request, gender: str):
+    items_in = await get_items_by_category(gender)
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "featured_items": items_in,
+        "count": count,
+        "gender": gender,
+        "item_type": None
+        })
 
 
-def verify_password(stored_password: str, input_password: str) -> bool:
-    # Хеширование входящего пароля
-    hashed_input_password = hash_password(input_password)
-
-    # Сравнение хешей
-    return hashed_input_password == stored_password
-
-
-def hash_password(password: str) -> str:
-    # Кодирование пароля в байты
-    password_bytes = password.encode('utf-8')
-
-    # Создание объекта хеширования
-    hash_object = hashlib.sha256()
-
-    # Обновление объекта хеширования
-    hash_object.update(password_bytes)
-
-    # Получение хеша
-    hashed_password = hash_object.hexdigest()
-
-    return hashed_password
+@router.get("/category/{gender}/{item_type}")
+async def get_items(request: Request, gender: str, item_type: str):
+    items_in = await get_items_by_category(gender, item_type)
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "featured_items": items_in,
+        "count": count,
+        "gender": gender,
+        "item_type": item_type
+    })
 
 
-def verify_password(stored_password: str, input_password: str) -> bool:
-    # Хеширование входящего пароля
-    hashed_input_password = hash_password(input_password)
-
-    # Сравнение хешей
-    return hashed_input_password == stored_password
+@router.get("/add-item")
+async def get_add_item_form(request: Request):
+    return templates.TemplateResponse("add_item.html", {"request": request, "count": count})
 
 
-def hash_password(password: str) -> str:
-    # Кодирование пароля в байты
-    password_bytes = password.encode('utf-8')
+@router.post("/add-item")
+async def add_item_from_form(
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(...),
+    price: float = Form(...),
+    discount: Optional[float] = Form(None),
+    is_featured: str = Form(...),
+    gender_category: GenderCategory = Form(...),
+    item_type: str = Form(...),
+    image: UploadFile = Form(...)
+):
+    # Save the uploaded image to the static folder
+    image_filename = None
+    if image:
+        image_filename = image.filename
 
-    # Создание объекта хеширования
-    hash_object = hashlib.sha256()
+    # Create the item
+    item_in = ItemIn(
+        title=title,
+        description=description,
+        price=price,
+        discount=discount,
+        is_featured=is_featured,
+        gender_category=gender_category,
+        item_type=item_type,
+        image_filename=image_filename  # Store the image filename in the database
+    )
+    await add_item(item_in)
+    return RedirectResponse("/add-item?success=true", status_code=303)
 
-    # Обновление объекта хеширования
-    hash_object.update(password_bytes)
-
-    # Получение хеша
-    hashed_password = hash_object.hexdigest()
-
-    return hashed_password
-
-
-def verify_password(stored_password: str, input_password: str) -> bool:
-    # Хеширование входящего пароля
-    hashed_input_password = hash_password(input_password)
-
-    # Сравнение хешей
-    return hashed_input_password == stored_password
 
 @router.get("/")
 async def html_index(request: Request):
-    token = request.cookies.get("JWT")
-    if token:
-        decoded_token = decode_token(token)
-        positions_amount = get_unique_positions(decoded_token.id)
-        return templates.TemplateResponse("index.html", {"request": request, "count": positions_amount})
-    return templates.TemplateResponse("index.html", {"request": request})
+    featured_items = await load_featured_items()
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "count": count,
+        "featured_items": featured_items,
+        "show_all_items": False
+    })
 
 
 @router.get("/form/")
@@ -142,7 +143,7 @@ async def submit_form(
         # Удалить этот коментарий1
         # Call the create_user function
         await create_user(user_in)
-        # print(f"Created user: {created_user}")
+        print(f"Created user: {user_in}")
 
         # Redirect to the home page or another page after successful submission
         return RedirectResponse(url="/", status_code=303)
@@ -156,9 +157,11 @@ async def submit_form(
     except Exception as e:
         return templates.TemplateResponse("input_form.html", {"request": request, "error": f'Ошибка: {str(e)}'})
 
+
 @router.get("/login/")
 async def login_page(request: Request):
-    return templates.TemplateResponse("login_form.html", {"request": request, "count": positions_amount})
+    return templates.TemplateResponse("login_form.html", {"request": request, "count": count})
+
 
 @router.post("/login/")
 async def login_user(request: Request):
@@ -185,11 +188,13 @@ async def login_user(request: Request):
     except TypeError:
         return {'msg': "user not exists"}
 
+
 @router.get("/logout/")
 async def logout_page(request: Request):
     if request.cookies.get("JWT"):
         return templates.TemplateResponse("logout.html", {"request": request, "count": count})
     return RedirectResponse(url="/login/")
+
 
 @router.post("/logout/")
 async def logout(request: Request):
@@ -200,9 +205,20 @@ async def logout(request: Request):
     await add_token_to_blacklist(token_in=token_in)
     return RedirectResponse(url="/")
 
+
 @router.get("/test_confident1/")
 async def confident1(request: Request):
     token = request.cookies.get("JWT")
     if token:
         return {"test_confident1": True}
     return {"test_confident1": False}
+
+
+@router.post("/subscribe")
+async def subscribe(
+        email: EmailStr = Form(...)
+):
+    newsletter_in = NewsletterIn(email=email)
+    await add_newsletter_mail(newsletter_in)
+    print(f"Created mail: {newsletter_in}")
+    return RedirectResponse(url="/", status_code=303)

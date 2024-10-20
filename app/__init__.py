@@ -1,1 +1,1 @@
-from .schemas import UserIn, User
+from .schemas import UserIn, User, NewsletterIn
