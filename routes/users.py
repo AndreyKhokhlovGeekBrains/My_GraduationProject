@@ -1,7 +1,8 @@
 # user-related routes
 from fastapi import APIRouter, Depends
-from app.schemas import UserIn, User
-from app.crud import create_user, get_users, get_user_by_login_data, update_user, delete_user, get_user_by_id
+from app.schemas import UserIn, User, NewsletterIn
+from app.crud import (create_user, get_users, get_user_by_login_data, update_user, delete_user,
+                      get_user_by_id, add_newsletter_mail)
 from typing import List
 
 router = APIRouter()

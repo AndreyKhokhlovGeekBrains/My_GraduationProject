@@ -1,0 +1,96 @@
+{% extends 'index.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" action="/add-item" enctype="multipart/form-data">
+    <div class="my-action">
+        <div class="add-item">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required><br><br>
+        </div>
+
+        <div class="add-item">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea><br><br>
+        </div>
+
+        <div class="add-item">
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" required><br><br>
+        </div>
+
+        <div class="add-item">
+            <label for="discount">Discount:</label>
+            <input type="number" id="discount" name="discount" step="0.0001"><br><br>
+        </div>
+
+        <div class="add-item">
+            <label for="is_featured">Is Featured:</label>
+            <select id="is_featured" name="is_featured" required>
+                <option value="featured">featured</option>
+                <option value="not_featured">not_featured</option>
+            </select><br><br>
+        </div>
+
+        <div class="add-item">
+            <label for="gender_category">Gender Category:</label>
+                <select id="gender_category" name="gender_category" required>
+                    <option value="man">MAN</option>
+                    <option value="women">WOMEN</option>
+                    <option value="kids">KIDS</option>
+                </select><br><br>
+        </div>
+
+        <div class="add-item">
+            <label for="item_type">Item Type:</label>
+                <select id="item_type" name="item_type" required>
+                    <option value="accessories">Accessories</option>
+                    <option value="bags">Bags</option>
+                    <option value="denim">Denim</option>
+                    <option value="jackets_coats">Jackets & Coats</option>
+                    <option value="polos">Polos</option>
+                    <option value="t_shirts">T-Shirts</option>
+                    <option value="shirts">Shirts</option>
+                    <option value="trousers">Trousers</option>
+                    <option value="shoes">Shoes</option>
+                </select><br><br>
+        </div>
+
+    
+        <div class="add-item">
+            <label for="image">Upload Image:</label>
+            <input type="file" id="image" name="image" accept="image/*"><br><br>
+        </div>
+
+
+        <button class="submit-button" type="submit">
+            <span class="submit">Add Item</span>
+        </button>
+    </div>
+</form>
+
+<div id="toast" class="toast-message">
+    Item added successfully!
+</div>
+
+<script>
+    // Function to display the toast message
+    function showToast() {
+        const toast = document.getElementById("toast");
+        toast.className = "toast-message show";
+        setTimeout(() => {
+            toast.className = toast.className.replace("show", "");
+        }, 3000);
+    }
+
+    // Check for the 'success' parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+        showToast();
+    }
+</script>
+
+{% endblock %}
