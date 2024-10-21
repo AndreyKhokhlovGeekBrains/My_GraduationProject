@@ -14,6 +14,7 @@ class GenderCategory(PyEnum):
 class ItemIn(BaseModel):
     title: constr(max_length=32) = Field(..., description="Title of the item")
     description: constr(max_length=255) = Field(..., description="Description of the item")
+    quantity: int = Field(..., description="Quantity of related item")
     price: float = Field(..., description="Item price")
     discount: Optional[float] = None
     is_featured: constr(max_length=50) = Field(..., description="This indicates whether an item is featured or not")

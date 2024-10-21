@@ -198,13 +198,22 @@
         <div class="block2-pics">
             {% for item in featured_items %}
             <div class="image-container">
-              
+
+              <div class="pic">
                 <img src="{{ item.picture }}" alt="{{ item.title }}" class="pic img-original" />
                 <img src="/static/img/Hover.svg" alt="..." class="img-replacement" />
+              </div>
               
                 <h3 class="item-description">{{ item.title }}</h3>
                 <p class="item-description description">{{ item.description }}</p>
-                <h2 class="item-description price">{{ item.price }}</h2>
+                <h2 class="item-description price">
+                  {% if item.discount is not none and item.discount > 0 %}
+                    <del>${{ item.price }}</del>  
+                    <span class="discounted_price">${{ (item.price - item.price * item.discount) | round(2) }} (-{{ (item.discount * 100) | round(0) }}%)</span>
+                  {% else %}
+                    ${{ item.price }}
+                  {% endif %}
+                </h2>
               
             </div>   
             {% endfor %}

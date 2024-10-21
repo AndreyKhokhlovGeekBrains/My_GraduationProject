@@ -8,7 +8,8 @@ from cookie.jwt import create_token, decode_token
 from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory
 from pydantic import EmailStr
 from app.crud import (create_user, get_user_by_login_data, add_token_to_blacklist,
-                      add_newsletter_mail, add_item, load_featured_items, get_items_by_category, get_all_items)
+                      add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
+                      get_all_items, get_product_by_id, post_edited_product_item)
 import shutil
 # import bcrypt
 from datetime import datetime
@@ -18,6 +19,50 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 count = 0
+
+
+@router.get("/edit-item/{product_id}")
+async def get_edit_item_form(product_id: int, request: Request):
+    item_in = await get_product_by_id(product_id)
+    return templates.TemplateResponse("edit_item.html", {
+        "request": request,
+        "count": count,
+        "item": item_in
+    })
+
+
+@router.post("/edit-item/{product_id}")
+async def edit_item(product_id: int,
+                    title: str = Form(None),
+                    description: str = Form(None),
+                    price: float = Form(None),
+                    discount: Optional[float] = Form(None),
+                    quantity: int = Form(None),
+                    is_featured: str = Form(None),
+                    gender_category: GenderCategory = Form(None),
+                    item_type: str = Form(None),
+                    image: Optional[UploadFile] = Form(None),
+                    status: str = Form(None)):
+    current_product = await get_product_by_id(product_id)
+
+    image_filename = current_product['image_filename']
+    if image:
+        image_filename = image.filename
+
+    await post_edited_product_item(
+        product_id=product_id,
+        title=title if title else current_product["title"],
+        description=description if description else current_product["description"],
+        price=price if price else current_product["price"],
+        discount=discount,
+        quantity=quantity if quantity else current_product["quantity"],
+        is_featured=is_featured if is_featured else current_product["is_featured"],
+        gender_category=GenderCategory(gender_category) if gender_category else current_product["gender_category"],
+        item_type=item_type if item_type else current_product["item_type"],
+        image_filename=image_filename if image_filename else current_product["image_filename"],
+        status=status if status else current_product["status"]
+    )
+    return RedirectResponse(f"/edit-item/{product_id}?success=true", status_code=303)
 
 
 @router.get("/all")
@@ -65,6 +110,7 @@ async def add_item_from_form(
     request: Request,
     title: str = Form(...),
     description: str = Form(...),
+    quantity: int = Form(...),
     price: float = Form(...),
     discount: Optional[float] = Form(None),
     is_featured: str = Form(...),
@@ -81,6 +127,7 @@ async def add_item_from_form(
     item_in = ItemIn(
         title=title,
         description=description,
+        quantity=quantity,
         price=price,
         discount=discount,
         is_featured=is_featured,

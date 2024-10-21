@@ -13,13 +13,15 @@ products = Table(
     Column("id", Integer, primary_key=True),
     Column("title", String(32)),
     Column("description", String(255)),
+    Column("quantity", Integer, nullable=False, default=0),
     Column("price", Numeric(10, 2), nullable=False),  # Numeric for precision
     Column("discount", Numeric(5, 4), nullable=True),  # Numeric for precision
     Column("created_at", DateTime, server_default=func.now()),
     Column("is_featured", String(50), nullable=False),  # Could be changed to Enum
     Column("gender_category", Enum(GenderCategory), nullable=False),
     Column("item_type", String(50), nullable=False),  # Could be changed to Enum
-    Column("image_filename", String(255), nullable=True)  # Add this column to store the image filename
+    Column("image_filename", String(255), nullable=True),  # Add this column to store the image filename
+    Column("status", String(50), nullable=False, server_default="Active")
 )
 
 users = Table(
@@ -33,6 +35,7 @@ users = Table(
     Column("phone", String(20)),
     Column("agreement", Boolean, default=False),
     Column("created_at", DateTime, server_default=func.now()),
+    Column("status", String(50), nullable=False, server_default="Active")
 )
 
 newsletter_subscriptions = Table(
