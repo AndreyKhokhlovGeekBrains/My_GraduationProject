@@ -11,7 +11,6 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Register routes
-# app.include_router(users_router, prefix="/users", tags=["users"])
 app.include_router(forms.router, tags=["forms"])
 app.include_router(cart_router)
 

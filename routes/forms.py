@@ -1,24 +1,100 @@
 # form handling routes
-from fastapi import APIRouter, Request, Form, Response, Depends, HTTPException, UploadFile, File
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Request, Form, Response, UploadFile, FastAPI
+from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from cookie.jwt import create_token, decode_token
 from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory
 from pydantic import EmailStr
-from app.crud import (create_user, get_user_by_login_data, add_token_to_blacklist,
+from app.crud import (create_user, get_user_by_id, update_user, get_user_by_login_data, add_token_to_blacklist,
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
                       get_all_items, get_product_by_id, post_edited_product_item)
-import shutil
-# import bcrypt
+
+import bcrypt
+import logging
 from datetime import datetime
 
+logging.basicConfig(level=logging.INFO)
 router = APIRouter()
+app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
 count = 0
+
+
+@router.get("/edit-user-request")
+async def get_edit_user_request(request: Request):
+    return templates.TemplateResponse("edit_user_request.html", {
+        "request": request,
+        "count": count,
+    })
+
+
+@router.post("/edit-user-request")
+async def post_edit_user_request(user_id: int = Form(...)):
+    return RedirectResponse(f"/edit-user/{user_id}", status_code=303)
+
+
+@router.get("/edit-request")
+async def get_edit_request(request: Request):
+    return templates.TemplateResponse("edit_request.html", {
+        "request": request,
+        "count": count,
+    })
+
+
+@router.post("/edit-request")
+async def post_edit_request(product_id: int = Form(...)):
+    return RedirectResponse(f"/edit-item/{product_id}", status_code=303)
+
+
+@router.get("/edit-user/{user_id}")
+async def get_edit_user_form(user_id: int, request: Request):
+    user_to_edit = await get_user_by_id(user_id)
+    if user_to_edit:
+        print(f"User found: {user_to_edit}")
+    else:
+        print(f"No user found with ID {user_id}")
+    return templates.TemplateResponse("edit_user.html", {
+        "request": request,
+        "count": count,
+        "user": user_to_edit
+    })
+
+
+@router.post("/edit-user/{user_id}")
+async def post_edit_user_form(
+        user_id: int,
+        input_name: str = Form(...),
+        input_email: EmailStr = Form(...),
+        input_password: str = Form(None),
+        input_birthdate: str = Form(...),
+        input_phone: str = Form(...)
+        ):
+    current_user = await get_user_by_id(user_id)
+    new_password = input_password if input_password else None
+    if new_password:
+        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    else:
+        hashed_password = current_user["password"]
+
+    birthdate = datetime.strptime(input_birthdate, '%Y-%m-%d').date()
+
+    new_user = UserIn(
+            name=input_name if input_name else current_user["name"],
+            email=input_email if input_email else current_user["input_email"],
+            password=hashed_password,
+            birthdate=birthdate if birthdate else current_user["birthdate"],
+            phone=input_phone if input_phone else current_user["input_phone"],
+            agreement = current_user["agreement"]
+        )
+
+    logging.info(f'user_id: {user_id}')
+    await update_user(user_id, new_user)
+    return RedirectResponse(f"/edit-user/{user_id}?success=true", status_code=303)
 
 
 @router.get("/edit-item/{product_id}")
@@ -161,7 +237,6 @@ async def submit_form(
         input_name: str = Form(..., alias="input-name", description="Name of the user"),
         input_email: EmailStr = Form(..., alias="input-email", description="Email of the user"),
         input_password: str = Form(..., alias="input-password", description="Password of the user"),
-        # input_age: int = Form(..., ge=1, alias="input-age", description="Age must be a positive integer"),
         input_birthdate: str = Form(..., alias="input-birthdate", description="Birthdate in YYYY-MM-DD format"),
         input_phone: str = Form(..., alias="input-phone", description="Phone number"),
         input_checkbox: str = Form(None, alias="input-checkbox")  # This will be 'on' if checked
@@ -174,12 +249,12 @@ async def submit_form(
         # Parse the birthdate from string to a date object
         birthdate = datetime.strptime(input_birthdate, '%Y-%m-%d').date()
 
-        # input_password_hashed = bcrypt.hashpw(input_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hashed_password = bcrypt.hashpw(input_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         user_in = UserIn(
             name=input_name,
             email=input_email,
-            password=input_password,
-            # password=input_password_hashed,
+            # password=input_password,
+            password=hashed_password,
             birthdate=birthdate,
             phone=input_phone,
             agreement=True if input_checkbox == 'on' else False
@@ -187,9 +262,9 @@ async def submit_form(
 
         # Call the create_user function
         await create_user(user_in)
-        print(f"Created user: {user_in}")
+        print(f"Created user: {user_in.dict(exclude={'password'})}")
 
-        # Redirect to the home page or another page after successful submission
+        # Redirect to the home page
         return RedirectResponse(url="/", status_code=303)
         # Or redirect to a page showing the new user's details
         # return RedirectResponse(url=f"/user/{created_user['id']}", status_code=303)
@@ -259,3 +334,24 @@ async def subscribe(
     await add_newsletter_mail(newsletter_in)
     print(f"Created mail: {newsletter_in}")
     return RedirectResponse(url="/", status_code=303)
+
+
+@app.exception_handler(Exception)
+async def custom_500_handler(request: Request, exc: Exception):
+    print(f"An error occurred: {exc}")
+    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+
+
+# Exception handler specifically for HTTP exceptions like 400
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 400:
+        return templates.TemplateResponse("400.html", {"request": request}, status_code=400)
+    else:
+        # Catch other HTTP exceptions, fallback to the regular behavior
+        return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
+
+
+@app.get("/test-500")
+async def test_500():
+    raise Exception("This is a simulated 500 error")

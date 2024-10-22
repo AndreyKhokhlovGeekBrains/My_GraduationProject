@@ -48,21 +48,6 @@
         /><br />
     </div>
 
-<!--    <div class="action-age action-block">-->
-<!--        <div class="description">-->
-<!--            <i class="fa-brands fa-pagelines"></i>-->
-<!--            <label for="input-age">Возраст</label>-->
-<!--        </div>-->
-<!--        <input-->
-<!--            type="number"-->
-<!--            id="input-age"-->
-<!--            name="input-age"-->
-<!--            required-->
-<!--            min="6"-->
-<!--            class="input-box"-->
-<!--        /><br />-->
-<!--    </div>-->
-
     <div class="action-birthdate action-block">
         <div class="description">
             <i class="fa-solid fa-cake-candles"></i>
@@ -88,6 +73,8 @@
             name="input-phone"
             required
             class="input-box"
+            pattern="\+?\d{7,20}"
+            title="A valid phone number (7 to 20 digits, optional +)"
         /><br />
     </div>
 

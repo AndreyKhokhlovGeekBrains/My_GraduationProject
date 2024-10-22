@@ -1,0 +1,106 @@
+{% extends 'index.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<form action="/edit-user/{{ user.id }}" method="post" class="my-action">
+    <div class="action-name action-block">
+        <div class="description">
+            <i class="fa-solid fa-user"></i>
+            <label for="input-name">Имя</label>
+        </div>
+        <input
+            type="text"
+            id="input-name"
+            name="input_name"
+            required
+            autofocus
+            class="input-box"
+            value="{{ user.name }}"
+        /><br />
+    </div>
+
+    <div class="action-email action-block">
+        <div class="description">
+            <i class="fa-solid fa-envelope"></i>
+            <label for="input-email">Email</label>
+        </div>
+        <input
+            type="email"
+            id="input-email"
+            name="input_email"
+            required
+            class="input-box"
+            value="{{ user.email }}"
+        /><br />
+    </div>
+
+    <div class="action-password action-block">
+        <div class="description">
+            <i class="fa-solid fa-lock"></i>
+            <label for="input-password">Пароль</label>
+        </div>
+        <input
+            type="password"
+            id="input-password"
+            name="input_password"
+            class="input-box"
+        /><br />
+    </div>
+
+    <div class="action-birthdate action-block">
+        <div class="description">
+            <i class="fa-solid fa-cake-candles"></i>
+            <label for="input-birthdate">Дата рождения</label>
+        </div>
+        <input
+            type="date"
+            id="input-birthdate"
+            name="input_birthdate"
+            required
+            class="input-box"
+            value="{{ user.birthdate }}"
+        /><br />
+    </div>
+
+    <div class="action-phone action-block">
+        <div class="description">
+            <i class="fa-solid fa-phone"></i>
+            <label for="input-phone">Телефон</label>
+        </div>
+        <input
+            type="tel"
+            id="input-phone"
+            name="input_phone"
+            required
+            class="input-box"
+            value="{{ user.phone }}"
+            pattern="\+?\d{7,20}"
+            title="A valid phone number (7 to 20 digits, optional +)"
+        /><br />
+    </div>
+
+    <button class="submit-button">
+        <span class="submit">Отправить</span>
+    </button>
+</form>
+
+<script>
+    // Function to display the toast message
+    function showToast() {
+        const toast = document.getElementById("toast");
+        toast.className = "toast-message show";
+        setTimeout(() => {
+            toast.className = toast.className.replace("show", "");
+        }, 3000);
+    }
+
+    // Check for the 'success' parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+        showToast();
+    }
+</script>
+
+{% endblock %}
