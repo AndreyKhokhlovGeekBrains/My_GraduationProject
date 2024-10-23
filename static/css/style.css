@@ -4,7 +4,11 @@ form[role="search"] {
 }
 
 form[role="search"] input {
-    width: 250px; /* Adjust the width as per your design */
+    max-width: 250px;
+}
+
+.search-box {
+  max-width: 250px;
 }
 
 .nav-link {
@@ -544,6 +548,9 @@ form[role="search"] input {
   }
   .footer__container .footer-block h3 {
     font-size: 2em;
+  }
+  .navbar .container-fluid {
+    flex-wrap: nowrap;
   }
 }
 
