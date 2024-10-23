@@ -267,7 +267,6 @@ async def submit_form(
         input_phone: str = Form(..., alias="input-phone", description="Phone number"),
         input_checkbox: str = Form(None, alias="input-checkbox")  # This will be 'on' if checked
 ):
-    # Simple validation for name, feel free to extend validation to other fields
     if not input_name:
         return templates.TemplateResponse("input_form.html", {"request": request, "error": "Введите имя!"})
 
