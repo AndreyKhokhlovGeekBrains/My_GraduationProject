@@ -20,4 +20,27 @@
     </div>
 </form>
 
+
+<div id="toast" class="toast-message">
+    User details updated successfully!
+</div>
+
+<script>
+    function showToast() {
+        const toast = document.getElementById("toast");
+        toast.className = "toast-message show";
+        setTimeout(() => {
+            toast.className = toast.className.replace("show", "");
+        }, 3000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showToast();
+        }
+    });
+</script>
+
+
 {% endblock %}

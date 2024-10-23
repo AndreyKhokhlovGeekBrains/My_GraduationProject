@@ -1,3 +1,12 @@
+form[role="search"] {
+    display: flex;
+    align-items: center;
+}
+
+form[role="search"] input {
+    width: 250px; /* Adjust the width as per your design */
+}
+
 .nav-link {
   max-width: 50px;
 }
@@ -96,7 +105,7 @@
   display: flex;
   justify-content: space-between;
 
-  width: 100%;
+  width: 50%;
 }
 
 .main__container .block0 .text-block {
@@ -241,7 +250,7 @@
 
 .main__container .block2 .image-container:hover .img-replacement {
   display: block;
-  opacity: 90%;
+  opacity: 50%;
   top: 0;
   left: 0;
 }

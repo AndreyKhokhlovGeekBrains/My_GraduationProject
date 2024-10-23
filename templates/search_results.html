@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>Results for "{{ query }}"</h2>
+<ul>
+    {% for item in items %}
+    <li>{{ item.title }} - {{ item.description }} - ${{ item.price }}</li>
+    {% endfor %}
+</ul>
+
+{% if not items %}
+<p>No items found.</p>
+{% endif %}
+
+{% endblock %}

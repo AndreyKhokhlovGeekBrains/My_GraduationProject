@@ -81,6 +81,14 @@
         /><br />
     </div>
 
+    <div class="action-status action-block">
+        <label for="status">Status:</label>
+        <select id="status" name="status" required>
+            <option value="Active" {% if user.status == 'Active' %}selected{% endif %}>Active</option>
+            <option value="Deleted" {% if user.status == 'Deleted' %}selected{% endif %}>Deleted</option>
+        </select><br><br>
+    </div>
+
     <button class="submit-button">
         <span class="submit">Отправить</span>
     </button>

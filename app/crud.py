@@ -7,6 +7,16 @@ from app.schemas import GenderCategory
 from decimal import Decimal
 
 
+async def search_items_in_db(query: str):
+    # Searching in title and description columns of the 'products' table
+    search_query = select(products).where(
+        products.c.title.ilike(f'%{query}%') | products.c.description.ilike(f'%{query}%')
+    )
+
+    result = await database.fetch_all(search_query)
+    return result
+
+
 async def post_edited_product_item(
                     product_id: int,
                     title: str,

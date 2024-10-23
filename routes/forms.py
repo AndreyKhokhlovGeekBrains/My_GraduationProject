@@ -10,7 +10,7 @@ from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory
 from pydantic import EmailStr
 from app.crud import (create_user, get_user_by_id, update_user, get_user_by_login_data, add_token_to_blacklist,
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
-                      get_all_items, get_product_by_id, post_edited_product_item)
+                      get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db)
 
 import bcrypt
 import logging
@@ -25,11 +25,23 @@ templates = Jinja2Templates(directory="templates")
 count = 0
 
 
+@router.get("/search")
+async def search_database_for_items(query: str, request: Request):
+    items = await search_items_in_db(query)
+    return templates.TemplateResponse("search_results.html", {
+        "request": request,
+        "items": items,
+        "count": count,
+        "query": query
+    })
+
+
 @router.get("/edit-user-request")
 async def get_edit_user_request(request: Request):
     return templates.TemplateResponse("edit_user_request.html", {
         "request": request,
         "count": count,
+        "title": "Edit user request"
     })
 
 
@@ -43,6 +55,7 @@ async def get_edit_request(request: Request):
     return templates.TemplateResponse("edit_request.html", {
         "request": request,
         "count": count,
+        "title": "Edit product request"
     })
 
 
@@ -61,7 +74,8 @@ async def get_edit_user_form(user_id: int, request: Request):
     return templates.TemplateResponse("edit_user.html", {
         "request": request,
         "count": count,
-        "user": user_to_edit
+        "user": user_to_edit,
+        "title": "Edit user form"
     })
 
 
@@ -72,7 +86,8 @@ async def post_edit_user_form(
         input_email: EmailStr = Form(...),
         input_password: str = Form(None),
         input_birthdate: str = Form(...),
-        input_phone: str = Form(...)
+        input_phone: str = Form(...),
+        status: str = Form(...)
         ):
     current_user = await get_user_by_id(user_id)
     new_password = input_password if input_password else None
@@ -89,12 +104,17 @@ async def post_edit_user_form(
             password=hashed_password,
             birthdate=birthdate if birthdate else current_user["birthdate"],
             phone=input_phone if input_phone else current_user["input_phone"],
-            agreement = current_user["agreement"]
+            agreement=current_user["agreement"],
+            status=status
         )
 
     logging.info(f'user_id: {user_id}')
-    await update_user(user_id, new_user)
-    return RedirectResponse(f"/edit-user/{user_id}?success=true", status_code=303)
+    try:
+        await update_user(user_id, new_user)
+        return RedirectResponse(f"/edit-user-request?success=true", status_code=303)
+    except Exception as e:
+        logging.error(f"Failed to update user {user_id}: {e}")
+        return RedirectResponse(f"/edit-user/{user_id}?success=false", status_code=303)
 
 
 @router.get("/edit-item/{product_id}")
@@ -103,7 +123,8 @@ async def get_edit_item_form(product_id: int, request: Request):
     return templates.TemplateResponse("edit_item.html", {
         "request": request,
         "count": count,
-        "item": item_in
+        "item": item_in,
+        "title": "Edit product form"
     })
 
 
@@ -125,20 +146,24 @@ async def edit_item(product_id: int,
     if image:
         image_filename = image.filename
 
-    await post_edited_product_item(
-        product_id=product_id,
-        title=title if title else current_product["title"],
-        description=description if description else current_product["description"],
-        price=price if price else current_product["price"],
-        discount=discount,
-        quantity=quantity if quantity else current_product["quantity"],
-        is_featured=is_featured if is_featured else current_product["is_featured"],
-        gender_category=GenderCategory(gender_category) if gender_category else current_product["gender_category"],
-        item_type=item_type if item_type else current_product["item_type"],
-        image_filename=image_filename if image_filename else current_product["image_filename"],
-        status=status if status else current_product["status"]
-    )
-    return RedirectResponse(f"/edit-item/{product_id}?success=true", status_code=303)
+    try:
+        await post_edited_product_item(
+            product_id=product_id,
+            title=title if title else current_product["title"],
+            description=description if description else current_product["description"],
+            price=price if price else current_product["price"],
+            discount=discount,
+            quantity=quantity if quantity else current_product["quantity"],
+            is_featured=is_featured if is_featured else current_product["is_featured"],
+            gender_category=GenderCategory(gender_category) if gender_category else current_product["gender_category"],
+            item_type=item_type if item_type else current_product["item_type"],
+            image_filename=image_filename if image_filename else current_product["image_filename"],
+            status=status if status else current_product["status"]
+        )
+        return RedirectResponse(f"/edit-request?success=true", status_code=303)
+    except Exception as e:
+        logging.error(f"Failed to update user {product_id}: {e}")
+        return RedirectResponse(f"/edit-item/{product_id}?success=false", status_code=303)
 
 
 @router.get("/all")
@@ -222,7 +247,8 @@ async def html_index(request: Request):
         "request": request,
         "count": count,
         "featured_items": featured_items,
-        "show_all_items": False
+        "show_all_items": False,
+        "title": "Main page"
     })
 
 

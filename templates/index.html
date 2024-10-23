@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
       {% block title %}
-        Мой сайт
+        {{ title }}
       {% endblock %}
     </title>
     <link
@@ -33,6 +33,13 @@
           <a class="navbar-brand navbar-margin" href="/">
             <img src="/static/img/Logo.svg" alt="..." />
           </a>
+
+          <form class="d-flex" role="search" action="/search" method="get">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
+            <button class="btn btn-outline-light" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+          </form>
 
           <div class="navbar-items" id="navbarNavDropdown">
             <ul class="navbar-nav">
