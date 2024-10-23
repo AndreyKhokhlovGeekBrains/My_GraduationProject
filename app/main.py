@@ -44,4 +44,3 @@ featured_items = []
 # except Exception as e:
 #     print("Connection failed")
 #     print(e)
-
