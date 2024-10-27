@@ -10,7 +10,8 @@ from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory
 from pydantic import EmailStr
 from app.crud import (create_user, get_user_by_id, update_user, get_user_by_login_data, add_token_to_blacklist,
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
-                      get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db)
+                      get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db,
+                      get_item_type_name_by_id, get_item_type_id_by_name)
 
 import bcrypt
 import logging
@@ -18,18 +19,33 @@ from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 router = APIRouter()
-app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
 count = 0
 
+# A mapping dictionary for specific item types
+ITEM_TYPE_MAPPINGS = {
+    "tshirts": "T-Shirts",
+    "jackets_coats": "Jackets & Coats"
+}
+
 
 @router.get("/search")
 async def search_database_for_items(query: str, request: Request):
+    # Check if the query is empty
+    if not query.strip():
+        # Show a message for empty queries
+        return templates.TemplateResponse(request, "search_results.html", {
+            "items": [],
+            "count": count,
+            "query": query,
+            "message": "Please enter a search term"
+        })
+
+    # Proceed with normal search if query is not empty
     items = await search_items_in_db(query)
-    return templates.TemplateResponse("search_results.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "search_results.html", {
         "items": items,
         "count": count,
         "query": query
@@ -38,8 +54,7 @@ async def search_database_for_items(query: str, request: Request):
 
 @router.get("/edit-user-request")
 async def get_edit_user_request(request: Request):
-    return templates.TemplateResponse("edit_user_request.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "edit_user_request.html", {
         "count": count,
         "title": "Edit user request"
     })
@@ -52,8 +67,7 @@ async def post_edit_user_request(user_id: int = Form(...)):
 
 @router.get("/edit-request")
 async def get_edit_request(request: Request):
-    return templates.TemplateResponse("edit_request.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "edit_request.html", {
         "count": count,
         "title": "Edit product request"
     })
@@ -61,6 +75,9 @@ async def get_edit_request(request: Request):
 
 @router.post("/edit-request")
 async def post_edit_request(product_id: int = Form(...)):
+    current_product = await get_product_by_id(product_id)
+    if current_product is None:
+        return RedirectResponse(url="/edit-request?not_found=true", status_code=303)
     return RedirectResponse(f"/edit-item/{product_id}", status_code=303)
 
 
@@ -71,8 +88,7 @@ async def get_edit_user_form(user_id: int, request: Request):
         print(f"User found: {user_to_edit}")
     else:
         print(f"No user found with ID {user_id}")
-    return templates.TemplateResponse("edit_user.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "edit_user.html", {
         "count": count,
         "user": user_to_edit,
         "title": "Edit user form"
@@ -120,8 +136,7 @@ async def post_edit_user_form(
 @router.get("/edit-item/{product_id}")
 async def get_edit_item_form(product_id: int, request: Request):
     item_in = await get_product_by_id(product_id)
-    return templates.TemplateResponse("edit_item.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "edit_item.html", {
         "count": count,
         "item": item_in,
         "title": "Edit product form"
@@ -140,13 +155,16 @@ async def edit_item(product_id: int,
                     item_type: str = Form(None),
                     image: Optional[UploadFile] = Form(None),
                     status: str = Form(None)):
+    item_type_in = ITEM_TYPE_MAPPINGS.get(item_type.lower(), item_type.capitalize())
     current_product = await get_product_by_id(product_id)
+    item_type_id = await get_item_type_id_by_name(item_type_in)
 
     image_filename = current_product['image_filename']
     if image:
         image_filename = image.filename
 
     try:
+        # Fetch the `item_type_id` based on the selected item type name
         await post_edited_product_item(
             product_id=product_id,
             title=title if title else current_product["title"],
@@ -156,7 +174,7 @@ async def edit_item(product_id: int,
             quantity=quantity if quantity else current_product["quantity"],
             is_featured=is_featured if is_featured else current_product["is_featured"],
             gender_category=GenderCategory(gender_category) if gender_category else current_product["gender_category"],
-            item_type=item_type if item_type else current_product["item_type"],
+            item_type_id=item_type_id,
             image_filename=image_filename if image_filename else current_product["image_filename"],
             status=status if status else current_product["status"]
         )
@@ -169,8 +187,7 @@ async def edit_item(product_id: int,
 @router.get("/all")
 async def get_all(request: Request):
     items_in = await get_all_items()
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "index.html", {
         "featured_items": items_in,
         "count": count,
         "show_all_items": True
@@ -180,8 +197,7 @@ async def get_all(request: Request):
 @router.get("/category/{gender}")
 async def get_items_by_gender(request: Request, gender: str):
     items_in = await get_items_by_category(gender)
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "index.html", {
         "featured_items": items_in,
         "count": count,
         "gender": gender,
@@ -191,19 +207,20 @@ async def get_items_by_gender(request: Request, gender: str):
 
 @router.get("/category/{gender}/{item_type}")
 async def get_items(request: Request, gender: str, item_type: str):
-    items_in = await get_items_by_category(gender, item_type)
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    # Check if the item_type exists in the mapping dictionary; if not, capitalize it
+    item_type_in = ITEM_TYPE_MAPPINGS.get(item_type.lower(), item_type.capitalize())
+    items_in = await get_items_by_category(gender, item_type_in)
+    return templates.TemplateResponse(request, "index.html", {
         "featured_items": items_in,
         "count": count,
         "gender": gender,
-        "item_type": item_type
+        "item_type": item_type_in
     })
 
 
 @router.get("/add-item")
 async def get_add_item_form(request: Request):
-    return templates.TemplateResponse("add_item.html", {"request": request, "count": count})
+    return templates.TemplateResponse(request, "add_item.html", {"count": count})
 
 
 @router.post("/add-item")
@@ -224,6 +241,8 @@ async def add_item_from_form(
     if image:
         image_filename = image.filename
 
+    item_type_id = await get_item_type_id_by_name(item_type)
+
     # Create the item
     item_in = ItemIn(
         title=title,
@@ -233,7 +252,7 @@ async def add_item_from_form(
         discount=discount,
         is_featured=is_featured,
         gender_category=gender_category,
-        item_type=item_type,
+        item_type_id=item_type_id,
         image_filename=image_filename  # Store the image filename in the database
     )
     await add_item(item_in)
@@ -243,8 +262,7 @@ async def add_item_from_form(
 @router.get("/")
 async def html_index(request: Request):
     featured_items = await load_featured_items()
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "index.html", {
         "count": count,
         "featured_items": featured_items,
         "show_all_items": False,
@@ -254,7 +272,7 @@ async def html_index(request: Request):
 
 @router.get("/form/")
 async def form(request: Request):
-    return templates.TemplateResponse("input_form.html", {"request": request, "count": count})
+    return templates.TemplateResponse(request, "input_form.html", {"count": count})
 
 
 @router.post("/form/")
@@ -269,7 +287,7 @@ async def submit_form(
 ):
     # Simple validation for name, feel free to extend validation to other fields
     if not input_name:
-        return templates.TemplateResponse("input_form.html", {"request": request, "error": "Введите имя!"})
+        return templates.TemplateResponse(request, "input_form.html", {"error": "Введите имя!"})
 
     try:
         # Parse the birthdate from string to a date object
@@ -288,7 +306,7 @@ async def submit_form(
 
         # Call the create_user function
         await create_user(user_in)
-        print(f"Created user: {user_in.dict(exclude={'password'})}")
+        print(f"Created user: {user_in.model_dump(exclude={'password'})}")
 
         # Redirect to the home page
         return RedirectResponse(url="/", status_code=303)
@@ -297,16 +315,16 @@ async def submit_form(
 
     except ValueError as e:
         # Handle errors such as incorrect age, birthdate, or missing data
-        return templates.TemplateResponse("input_form.html",
-                                          {"request": request, "error": f'Ошибка валидации данных: {str(e)}'})
+        return templates.TemplateResponse(request, "input_form.html",
+                                          {"error": f'Ошибка валидации данных: {str(e)}'})
 
     except Exception as e:
-        return templates.TemplateResponse("input_form.html", {"request": request, "error": f'Ошибка: {str(e)}'})
+        return templates.TemplateResponse(request, "input_form.html", {"error": f'Ошибка: {str(e)}'})
 
 
 @router.get("/login/")
 async def login_page(request: Request):
-    return templates.TemplateResponse("login_form.html", {"request": request, "count": count})
+    return templates.TemplateResponse(request, "login_form.html", {"count": count})
 
 
 @router.post("/login/")
@@ -330,7 +348,7 @@ async def login_user(request: Request):
 @router.get("/logout/")
 async def logout_page(request: Request):
     if request.cookies.get("JWT"):
-        return templates.TemplateResponse("logout.html", {"request": request})
+        return templates.TemplateResponse(request, "logout.html", {})
     return RedirectResponse(url="/login/")
 
 
@@ -360,24 +378,3 @@ async def subscribe(
     await add_newsletter_mail(newsletter_in)
     print(f"Created mail: {newsletter_in}")
     return RedirectResponse(url="/", status_code=303)
-
-
-@app.exception_handler(Exception)
-async def custom_500_handler(request: Request, exc: Exception):
-    print(f"An error occurred: {exc}")
-    return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
-
-
-# Exception handler specifically for HTTP exceptions like 400
-@app.exception_handler(StarletteHTTPException)
-async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
-    if exc.status_code == 400:
-        return templates.TemplateResponse("400.html", {"request": request}, status_code=400)
-    else:
-        # Catch other HTTP exceptions, fallback to the regular behavior
-        return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
-
-
-@app.get("/test-500")
-async def test_500():
-    raise Exception("This is a simulated 500 error")

@@ -1,10 +1,18 @@
 # defining database app
 
-from sqlalchemy import Table, Column, Integer, String, Float, Numeric, Enum, Boolean, Date, DateTime, ARRAY, func
+from sqlalchemy import (Table, Column, Integer, String, ForeignKey, Numeric, Enum, Boolean, Date,
+                        DateTime, ARRAY, func)
 from .db import metadata
 from app.schemas import GenderCategory
 from datetime import datetime
 
+
+item_type = Table(
+    "item_type",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("description", String(30), nullable=False)
+)
 
 # a table where all goods are listed
 products = Table(
@@ -19,7 +27,8 @@ products = Table(
     Column("created_at", DateTime, server_default=func.now()),
     Column("is_featured", String(50), nullable=False),  # Could be changed to Enum
     Column("gender_category", Enum(GenderCategory), nullable=False),
-    Column("item_type", String(50), nullable=False),  # Could be changed to Enum
+    # Column("item_type", String(50), nullable=False),
+    Column("item_type_id", Integer, ForeignKey("item_type.id"), nullable=False),
     Column("image_filename", String(255), nullable=True),  # Add this column to store the image filename
     Column("status", String(50), nullable=False, server_default="Active")
 )
@@ -27,9 +36,9 @@ products = Table(
 users = Table(
     "users",
     metadata,
-    Column("id", Integer, primary_key=True),
+    Column("id", Integer, primary_key=True, autoincrement=True),
     Column("name", String(32)),
-    Column("email", String(128), nullable=False),
+    Column("email", String(128), nullable=False, unique=True),
     Column("password", String(255), nullable=False),
     Column("birthdate", Date),
     Column("phone", String(20)),
@@ -42,7 +51,7 @@ newsletter_subscriptions = Table(
     "newsletter_sbsr",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("user_id", Integer, nullable=True), # filled in only if a user signed in
+    Column("user_id", Integer, ForeignKey("users.id"), nullable=True),  # filled in only if a user signed in
     Column("email", String(128), nullable=False, unique=True),
     Column("created_at", DateTime, server_default=func.now()),
 )
