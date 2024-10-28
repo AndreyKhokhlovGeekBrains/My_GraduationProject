@@ -59,4 +59,4 @@ async def custom_404_handler(request: Request, exc):
 # - ./pgdata:/var/lib/postgresql/data
 # /edit-user-request - a request to edit a user's info
 # /edit-request - a request to edit a product's info
-
+# /add-item - add a new product

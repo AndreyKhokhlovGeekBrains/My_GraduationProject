@@ -1,9 +1,8 @@
 # form handling routes
-from fastapi import APIRouter, Request, Form, Response, UploadFile, FastAPI
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import APIRouter, Request, Form, Response, UploadFile
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from cookie.jwt import create_token, decode_token
 from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory
