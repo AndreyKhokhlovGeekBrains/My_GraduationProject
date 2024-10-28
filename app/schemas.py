@@ -1,8 +1,8 @@
-# Pydantic app
 from pydantic import BaseModel, Field, EmailStr, constr
 from datetime import date, datetime
 from enum import Enum as PyEnum
 from typing import Optional
+from decimal import Decimal
 
 
 class GenderCategory(PyEnum):
@@ -44,18 +44,27 @@ class User(BaseModel):
     created_at: datetime
 
 
-class PositionIn(BaseModel):
-    name: constr(max_length=128) = Field(..., description="Name of the position")
-    price: int = Field(None, gt=0, description="Price of the position")
-    tags: list[str] = Field(None, description="Tags")
+class Statuses(PyEnum):
+    placing = "placing"
+    delivery = "delivery"
+    delivered = "delivered"
 
 
-class Position(BaseModel):
-    id: int
-    name: str
-    price: str
-    tags: list[str]
-    created_at: datetime
+class OrderIn(BaseModel):
+    user_id: int
+    item_id: int
+    amount: int
+    address: str
+    price: Decimal
+    status: str
+
+
+class CardIn(BaseModel):
+    user_id: int
+    card_owner: str
+    card_number: str
+    card_exp_date: str
+    card_cvv: str
 
 
 class TokenIn(BaseModel):

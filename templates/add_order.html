@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<form id="add-order-form" action="/add-order/" method="post">
+    <label for="address">Адрес:</label>
+    <input type="text" id="address" name="address" required>
+
+    <label for="item_id">ID предмета:</label>
+    <input type="number" id="item_id" name="item_id" value="{{ itemId }}" required readonly> <!-- Нередактируемое поле -->
+
+    <label for="amount">Количество:</label>
+    <input type="number" id="amount" name="amount" value="{{ amount }}" required>
+
+    <label for="itemName">Название предмета:</label>
+    <input type="text" id="itemName" name="itemName" value="{{ item_name }}" required readonly> <!-- Нередактируемое поле -->
+
+    <a>Цена: {{ price }}</a>
+    <a>Цена * количество: {{ absolute_price }}</a>
+
+    <button type="submit">Оплатить</button>
+</form>
+
+<div id="toast" class="toast-message">Заказ оформлен!</div>
+
+<script src="/static/js/add_order_to_db.js"></script>
+{% endblock %}
