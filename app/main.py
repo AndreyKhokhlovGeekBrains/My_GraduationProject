@@ -1,9 +1,11 @@
+import typer
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from app.db import connect_db, disconnect_db, metadata, engine
 from routes import users_router, forms
 from cart import cart_router
 import os
+
 
 app = FastAPI()
 
@@ -26,7 +28,14 @@ async def startup():
 async def shutdown():
     await disconnect_db()
 
-featured_items = []
+
+"""async def connect_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
+
+async def disconnect_db():
+    await engine.dispose()
+"""
 
 
 # uvicorn app.main:app --reload
@@ -45,4 +54,3 @@ featured_items = []
 # except Exception as e:
 #     print("Connection failed")
 #     print(e)
-

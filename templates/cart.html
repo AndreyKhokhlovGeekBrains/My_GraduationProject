@@ -6,11 +6,37 @@
 
 {% block content %}
 <div id="cart-items">
-  {% for item_id, quantity in content.items() %}
+  {% if items is none or items | length == 0 %}
     <div>
-      <img src="/static/img/{{ item_id }}.svg" alt="{{ item_id }}">
-      <a>Quantity: {{ quantity }}</a>
+      <h2>Корзина пуста</h2>
     </div>
-  {% endfor %}
+  {% else %}
+    {% for item in items %}
+      <div class="cart-item">
+        <img src="/static/img/featured_items/{{ item.image_filename }}" alt="Изображение отсутствует" width="200" height="300">
+        <div id="pos_title">
+          <a>{{ item.title }}</a>
+        </div>
+        <a></a>
+        <div class="item-id">
+          <a>ID: {{ item.id }}</a>
+        </div>
+        <div class="other-info">
+          {% set quantity = content[item.id|string] if item.id|string in content else 1 %}
+          <a>Quantity: {{ quantity }}</a>
+          <a>Price: {{ item.price }}</a>
+        </div>
+        <div>
+          <!-- Кнопка "Добавить в корзину" -->
+          <button class="add-order button" data-item-id="{{ item.id }}" data-item-amount="{{ quantity }}" data-item-name="{{ item.title }}" data-item-price="{{ item.price }}">Добавить в корзину</button>
+          <button class="delete-item button" data-item-id="{{ item.id }}">Удалить из корзины</button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
 </div>
+<div id="toast" class="toast-message">Предмет удален!</div>
+
+<script src="/static/js/add_order.js"></script>
+<script src="/static/js/delete_item.js"></script>
 {% endblock %}

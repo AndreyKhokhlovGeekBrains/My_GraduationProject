@@ -4,7 +4,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="/login/" method="post" class="my-action">
+<form action="/login" method="post" class="my-action">
     <div class="action-email action-block">
         <div class="description">
             <label for="input-email">Email</label>
@@ -35,4 +35,24 @@
         <span class="submit">Login</span>
     </button>
 </form>
+<div id="toast" class="toast-message">
+    Login successfully!
+</div>
+
+<script>
+    // Function to display the toast message
+    function showToast() {
+        const toast = document.getElementById("toast");
+        toast.className = "toast-message show";
+        setTimeout(() => {
+            toast.className = toast.className.replace("show", "");
+        }, 3000);
+    }
+
+    // Check for the 'success' parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+        showToast();
+    }
+</script>
 {% endblock %}

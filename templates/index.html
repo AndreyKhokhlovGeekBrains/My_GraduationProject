@@ -21,7 +21,7 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/fontawesome-free-6.2.1@6.2.1/css/all.min.css"
     />
-    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   </head>
   <body>
     <header class="header__container">
@@ -36,6 +36,11 @@
 
           <div class="navbar-items" id="navbarNavDropdown">
             <ul class="navbar-nav">
+              <li>
+                <a class="nickname">
+                  {{ nickname }}
+                </a>
+              </li>
               <li class="nav-item dropdown">
                 <a
                   class="nav-link"
@@ -105,6 +110,9 @@
                 <ul class="dropdown-menu custom-dropdown-menu" data-bs-theme="light">
                   <li>
                     <a class="dropdown-item fw-semibold" href="/login/">Login</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item fw-semibold" href="/logout/">Logout</a>
                   </li>
                   <li>
                     <a class="dropdown-item fw-semibold" href="/form/">Register</a>
@@ -198,17 +206,23 @@
         <div class="block2-pics">
             {% for item in featured_items %}
             <div class="image-container">
-              
+              <a href="/cart/add/?position_id={{ item.id }}">
                 <img src="{{ item.picture }}" alt="{{ item.title }}" class="pic img-original" />
                 <img src="/static/img/Hover.svg" alt="..." class="img-replacement" />
-              
+
                 <h3 class="item-description">{{ item.title }}</h3>
                 <p class="item-description description">{{ item.description }}</p>
                 <h2 class="item-description price">{{ item.price }}</h2>
-              
-            </div>   
+              </a>
+            </div>
             {% endfor %}
         </div>
+
+        <!-- Подключаем jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <!-- Подключаем ваш JavaScript-файл -->
+        <script src="/static/js/ajax_add_toc_cart.js"></script>
     </div>
     
 

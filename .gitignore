@@ -1,4 +1,9 @@
 .idea
 .venv
 __pycache__
-models/__pycache__
+docker/pgdata
+docker/data/dump.rdb
+cart/__pycache__
+app/__pycache__
+cookie/__pycache__
+routes/__pycache__
