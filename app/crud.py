@@ -159,6 +159,11 @@ async def get_items_by_category(gender: str, item_type_in: Optional[str] = None)
     return items_by_category
 
 
+async def is_user_have_card(user_id: int):
+    query = select(cards).where(cards.c.user_id == user_id)
+    return await database.fetch_one(query)
+
+
 async def load_featured_items():
     query = select(products).where(
         (products.c.is_featured == 'featured') &
@@ -223,8 +228,6 @@ async def create_user(user_in):
     print("Creating user:", user_in)
     try:
         query = users.insert().values(**user_in.model_dump(exclude={"created_at"}))
-        result = await database.execute(query)
-        print(result)
         last_record_id = await database.execute(query)
         return {**user_in.model_dump(), "id": last_record_id}
     except Exception as e:

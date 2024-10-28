@@ -10,21 +10,17 @@ from fastapi.staticfiles import StaticFiles
 
 from cart.redis_client import get_unique_item
 from cookie.jwt import create_token, decode_token
-from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory, OrderIn, CardIn
-from pydantic import EmailStr
+from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory, OrderIn, CardIn, Statuses
+from pydantic import EmailStr, BaseModel
 from app.crud import (create_user, get_user_by_id, update_user, get_user_by_login_data, add_token_to_blacklist,
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
                       get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db,
-                      get_item_type_name_by_id, get_item_type_id_by_name, is_user_have_card, add_order_to_db, add_card)
+                      get_item_type_name_by_id, get_item_type_id_by_name, is_user_have_card,
+                      add_order_to_db, add_card, get_item_by_id)
 
 import bcrypt
 import logging
 from datetime import datetime
-
-import json
-
-from decimal import Decimal
-
 
 import json
 
@@ -263,9 +259,9 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 @router.get("/")
 async def html_index(request: Request):
-    count = 0
     nickname = ""
     token = request.cookies.get("JWT")
+    global count
 
     if token:
         decoded_token = decode_token(token)
@@ -273,13 +269,14 @@ async def html_index(request: Request):
         count = get_unique_item(user_id)
         nickname = decoded_token.username
     featured_items = await load_featured_items()
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "index.html", {
         "count": count,
         "nickname": nickname,
         "featured_items": featured_items,
-        "show_all_items": False
+        "show_all_items": False,
+        "title": "Main page"
     })
+
 
 @router.get("/add-item")
 async def get_add_item_form(request: Request):
@@ -335,7 +332,7 @@ async def html_index(request: Request):
 
 @router.get("/form/")
 async def form(request: Request):
-    count = 0
+    global count
     nickname = ""
     token = request.cookies.get("JWT")
 
@@ -375,7 +372,6 @@ async def submit_form(
             phone=input_phone,
             agreement=True if input_checkbox == 'on' else False
         )
-        # Удалить этот коментарий1
         # Call the create_user function
         await create_user(user_in)
         print(f"Created user: {user_in.model_dump(exclude={'password'})}")
@@ -395,7 +391,7 @@ async def submit_form(
 
 @router.get("/login/")
 async def login_page(request: Request):
-    count = 0
+    global count
     nickname = ""
     token = request.cookies.get("JWT")
 
@@ -471,6 +467,7 @@ async def logout(request: Request):
 @router.get("/add-order/")
 async def add_order_page(request: Request):
     token = request.cookies.get("JWT")
+    global count
     if token:
         decoded_token = decode_token(token)
 
@@ -599,13 +596,14 @@ async def add_order(request: Request, order: OrderInReq):
 
 @router.get("/add-card/")
 async def add_cart_page(request: Request):
+    global count
     token = request.cookies.get("JWT")
     if token:
         decoded_token = decode_token(token)
         user_id = decoded_token.id
         count = get_unique_item(user_id)
         nickname = decoded_token.username
-        return templates.TemplateResponse("add_card.html", {"request": request, "user_id": decoded_token.id,
+        return templates.TemplateResponse(request, "add_card.html", {"user_id": decoded_token.id,
                                                             "count": count, "nickname": nickname})
 
     return RedirectResponse("/login/")
