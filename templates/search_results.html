@@ -8,7 +8,11 @@
 <h2>Results for "{{ query }}"</h2>
 <ul>
     {% for item in items %}
-    <li>{{ item.title }} - {{ item.description }} - ${{ item.price }}</li>
+        {% if item.discount %}
+            <li>{{ item.title }} - {{ item.description }} - ${{ item.price }} Discount: ${{ (item.discount * 100) | round(1) }}%</li>
+        {% else %}
+            <li>{{ item.title }} - {{ item.description }} - ${{ item.price }}</li>
+        {% endif %}
     {% endfor %}
 </ul>
 

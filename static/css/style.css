@@ -1,3 +1,9 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 form[role="search"] {
     display: flex;
     align-items: center;
@@ -900,10 +906,9 @@ input {
 }
 
 /* Basic styling for the success message */
-.toast-message {
+.toast-message, .toast-message-failure {
   visibility: hidden;
   min-width: 200px;
-  background-color: #4caf50;
   color: white;
   text-align: center;
   border-radius: 5px;
@@ -914,11 +919,21 @@ input {
   top: 30px;
   transform: translateX(-50%);
   font-size: 17px;
+  transition: visibility 0s, opacity 0.5s linear;
+  opacity: 0;
 }
 
-.show {
+.toast-message {
+  background-color: #4caf50;
+}
+
+.toast-message-failure {
+  background-color: #f585ac;
+}
+
+.toast-message.show, .toast-message-failure.show {
   visibility: visible;
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  opacity: 1;
 }
 
 @keyframes fadein {
@@ -930,3 +945,13 @@ input {
   from {top: 30px; opacity: 1;}
   to {top: 0; opacity: 0;}
 }
+
+.alert-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Outline every element: */
+/* * {
+  outline: 1px solid red;
+} */

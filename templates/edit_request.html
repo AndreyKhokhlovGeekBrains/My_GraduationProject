@@ -5,6 +5,11 @@
 
 {% block content %}
 
+<!-- Display not_found warning if the product was not found -->
+{% if request.query_params.get('not_found') == 'true' %}
+    <div class="alert alert-warning">The requested product was not found.</div>
+{% endif %}
+
 <form action="/edit-request" method="post">
     <div class="my-action">
         <div class="edit-request">
@@ -12,9 +17,6 @@
             <label for="product_id">Product id:</label>
             <input type="number" id="product_id" name="product_id" required><br><br>
         </div>
-
-        
-
 
         <button class="submit-button" type="submit">
             <span class="submit">Get Item</span>
@@ -26,8 +28,11 @@
     Product details updated successfully!
 </div>
 
+<div id="toast_failure" class="toast-message">
+    Failed to update product details. Please try again.
+</div>
+
 <script>
-    // Function to display the toast message
     function showToast() {
         const toast = document.getElementById("toast");
         toast.className = "toast-message show";
@@ -36,11 +41,22 @@
         }, 3000);
     }
 
-    // Check for the 'success' parameter in the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-        showToast();
+    function showToastFailure() {
+        const toastFailure = document.getElementById("toast_failure");
+        toastFailure.className = "toast-message show";
+        setTimeout(() => {
+            toastFailure.className = toastFailure.className.replace("show", "");
+        }, 3000);
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showToast();
+        } else if (urlParams.get('success') === 'false') {
+            showToastFailure();
+        }
+    });
 </script>
 
 {% endblock %}

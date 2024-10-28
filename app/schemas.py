@@ -19,7 +19,7 @@ class ItemIn(BaseModel):
     discount: Optional[float] = None
     is_featured: constr(max_length=50) = Field(..., description="This indicates whether an item is featured or not")
     gender_category: GenderCategory = Field(..., description="Specifies a gender category")
-    item_type: constr(max_length=50) = Field(..., description="Specifies a category: Accessories, Polos etc")
+    item_type_id: int = Field(..., description="Foreign key referencing item type")
     image_filename: constr(max_length=100) = Field(..., description="Specifies a file attributed to the record")
 
 

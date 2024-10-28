@@ -52,15 +52,15 @@
         <div class="add-item">
             <label for="item_type">Item Type:</label>
             <select id="item_type" name="item_type" required>
-                <option value="accessories" {% if item.gender_category == 'accessories' %}selected{% endif %}>Accessories</option>
-                <option value="bags" {% if item.gender_category == 'bags' %}selected{% endif %}>Bags</option>
-                <option value="denim" {% if item.gender_category == 'denim' %}selected{% endif %}>Denim</option>
-                <option value="jackets_coats" {% if item.gender_category == 'jackets_coats' %}selected{% endif %}>Jackets & Coats</option>
-                <option value="polos" {% if item.gender_category == 'polos' %}selected{% endif %}>Polos</option>
-                <option value="t_shirts" {% if item.gender_category == 't_shirts' %}selected{% endif %}>T-Shirts</option>
-                <option value="shirts" {% if item.gender_category == 'shirts' %}selected{% endif %}>Shirts</option>
-                <option value="trousers" {% if item.gender_category == 'trousers' %}selected{% endif %}>Trousers</option>
-                <option value="shoes" {% if item.gender_category == 'shoes' %}selected{% endif %}>Shoes</option>
+                <option value="accessories" {% if item.gender_category == 'Accessories' %}selected{% endif %}>Accessories</option>
+                <option value="bags" {% if item.gender_category == 'Bags' %}selected{% endif %}>Bags</option>
+                <option value="denim" {% if item.gender_category == 'Denim' %}selected{% endif %}>Denim</option>
+                <option value="jackets_coats" {% if item.gender_category == 'Jackets & Coats' %}selected{% endif %}>Jackets & Coats</option>
+                <option value="polos" {% if item.gender_category == 'Polos' %}selected{% endif %}>Polos</option>
+                <option value="t_shirts" {% if item.gender_category == 'T-Shirts' %}selected{% endif %}>T-Shirts</option>
+                <option value="shirts" {% if item.gender_category == 'Shirts' %}selected{% endif %}>Shirts</option>
+                <option value="trousers" {% if item.gender_category == 'Trousers' %}selected{% endif %}>Trousers</option>
+                <option value="shoes" {% if item.gender_category == 'Shoes' %}selected{% endif %}>Shoes</option>
             </select><br><br>
         </div>
 
@@ -84,24 +84,38 @@
 </form>
 
 <div id="toast" class="toast-message">
-    Item added successfully!
+    Product details updated successfully!
+</div>
+
+<div id="toast_failure" class="toast-message-failure">
+    Failed to update product details. Please try again.
 </div>
 
 <script>
-    // Function to display the toast message
     function showToast() {
         const toast = document.getElementById("toast");
-        toast.className = "toast-message show";
+        toast.classList.add("show");
         setTimeout(() => {
-            toast.className = toast.className.replace("show", "");
+            toast.classList.remove("show");
         }, 3000);
     }
-
-    // Check for the 'success' parameter in the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-        showToast();
+    
+    function showToastFailure() {
+        const toastFailure = document.getElementById("toast_failure");
+        toastFailure.classList.add("show");
+        setTimeout(() => {
+            toastFailure.classList.remove("show");
+        }, 3000);
     }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showToast();
+        } elif (urlParams.get('success') === 'false') {
+            showToastFailure();
+        }
+    });
 </script>
 
 {% endblock %}

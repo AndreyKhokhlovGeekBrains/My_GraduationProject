@@ -5,9 +5,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <p class="col-12">Мы не нашли страницу: &laquo;{{ url }}&raquo;.<br>
-        <a href="{{ url_for('index') }}">Попробуйте вернуться на главную</a>
-    </p>
+<div class="alert-container">
+    <div class="row alert alert-warning">
+        <p class="col-12">Oops! The page you're looking for cannot be found.<br>
+            <a href="/">Go back to the homepage</a>
+        </p>
+    </div>
 </div>
 {% endblock %}
