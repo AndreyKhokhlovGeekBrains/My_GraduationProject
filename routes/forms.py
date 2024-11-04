@@ -1,6 +1,5 @@
 # form handling routes
-from fastapi import APIRouter, Request, Form, Response, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi import UploadFile
 from fastapi import APIRouter, Request, Form, Response, Depends, Body
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -51,7 +50,7 @@ class Card(BaseModel):
 
 # A mapping dictionary for specific item types
 ITEM_TYPE_MAPPINGS = {
-    "tshirts": "T-Shirts",
+    "t_shirts": "T-Shirts",
     "jackets_coats": "Jackets & Coats"
 }
 
@@ -257,27 +256,6 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
 
-@router.get("/")
-async def html_index(request: Request):
-    nickname = ""
-    token = request.cookies.get("JWT")
-    global count
-
-    if token:
-        decoded_token = decode_token(token)
-        user_id = decoded_token.id
-        count = get_unique_item(user_id)
-        nickname = decoded_token.username
-    featured_items = await load_featured_items()
-    return templates.TemplateResponse(request, "index.html", {
-        "count": count,
-        "nickname": nickname,
-        "featured_items": featured_items,
-        "show_all_items": False,
-        "title": "Main page"
-    })
-
-
 @router.get("/add-item")
 async def get_add_item_form(request: Request):
     return templates.TemplateResponse(request, "add_item.html", {"count": count})
@@ -296,12 +274,12 @@ async def add_item_from_form(
     item_type: str = Form(...),
     image: UploadFile = Form(...)
 ):
-    # Save the uploaded image to the static folder
     image_filename = None
     if image:
         image_filename = image.filename
 
-    item_type_id = await get_item_type_id_by_name(item_type)
+    item_type_in = ITEM_TYPE_MAPPINGS.get(item_type.lower(), item_type.capitalize())
+    item_type_id = await get_item_type_id_by_name(item_type_in)
 
     # Create the item
     item_in = ItemIn(
@@ -315,15 +293,26 @@ async def add_item_from_form(
         item_type_id=item_type_id,
         image_filename=image_filename  # Store the image filename in the database
     )
-    await add_item(item_in)
+    item_id = await add_item(item_in)
     return RedirectResponse("/add-item?success=true", status_code=303)
 
 
 @router.get("/")
 async def html_index(request: Request):
+    nickname = ""
+    token = request.cookies.get("JWT")
+    global count
+
+    if token:
+        decoded_token = decode_token(token)
+        user_id = decoded_token.id
+        count = get_unique_item(user_id)
+        nickname = decoded_token.username
+
     featured_items = await load_featured_items()
     return templates.TemplateResponse(request, "index.html", {
         "count": count,
+        "nickname": nickname,
         "featured_items": featured_items,
         "show_all_items": False,
         "title": "Main page"
@@ -374,7 +363,6 @@ async def submit_form(
         )
         # Call the create_user function
         await create_user(user_in)
-        print(f"Created user: {user_in.model_dump(exclude={'password'})}")
 
         # Redirect to the home page
         return RedirectResponse(url="/", status_code=303)

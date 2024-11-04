@@ -30,7 +30,7 @@ class UserIn(BaseModel):
     birthdate: date = Field(..., description="Birthdate in YYYY-MM-DD format")
     phone: str = Field(..., pattern=r'^\+?\d{7,20}$', description="Phone number with 7-20 digits")
     agreement: bool = Field(None, description="Check box")
-    status: str = Field(None, description="Deletion status")
+    status: str = Field("Active", description="Deletion status")
 
 
 class NewsletterIn(BaseModel):

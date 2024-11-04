@@ -170,15 +170,12 @@ async def load_featured_items():
         (products.c.status != "Deleted")
     )
     result = await database.fetch_all(query)
-    print(result[0].id)
     if not result:
         print("No featured items found")
         return []  # Return an empty list if no rows are found
 
     featured_items = []
     for row in result:
-        print(row["id"])
-        print(row["title"])
         featured_items.append({
             "id": row["id"],
             "picture": f"/static/img/featured_items/{row['image_filename']}",
@@ -193,7 +190,14 @@ async def load_featured_items():
 
 async def add_item(item_in):
     query = products.insert().values(**item_in.model_dump())
-    return await database.execute(query)
+    item_id = await database.execute(query)
+    # Check that the item was successfully added by querying for its existence
+    if item_id is not None:
+        select_query = select(products).where(products.c.id == item_id)
+        item_record = await database.fetch_one(select_query)
+        if item_record is None:
+            raise ValueError("Failed to verify the addition of the item to the database.")
+    return item_id
 
 
 async def get_item_by_id(item_id):
@@ -206,6 +210,16 @@ async def get_item_by_id(item_id):
     finally:
         print(products_list)
         return products_list
+
+
+async def get_item_id_by_title(item_title):
+    query = products.select().where(products.c.title == item_title)
+    try:
+        product = await database.fetch_one(query)
+        return product["id"] if product else None
+    except Exception as e:
+        print("Error fetching item by title:", e)
+        return None
 
 
 async def get_items_by_ids(item_ids: list):

@@ -1,7 +1,6 @@
 # database configuration
 from databases import Database
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker
 
 # Use environment variable to switch between local and Docker environments
 DATABASE_URL = "postgresql://postgres:68064911@localhost:5432/postgres"

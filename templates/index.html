@@ -213,10 +213,12 @@
         <div class="block2-pics">
             {% for item in featured_items %}
             <div class="image-container">
-                <a href="/cart/add/?position_id={{ item.id }}">
+                
               <div class="pic">
                 <img src="{{ item.picture }}" alt="{{ item.title }}" class="pic img-original" />
-                <img src="/static/img/Hover.svg" alt="..." class="img-replacement" />
+                <a href="/cart/add/?position_id={{ item.id }}">
+                  <img src="/static/img/Hover.svg" alt="..." class="img-replacement" />
+                </a>
               </div>
               
                 <h3 class="item-description">{{ item.title }}</h3>
