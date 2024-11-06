@@ -1,16 +1,17 @@
 # form handling routes
 from fastapi import UploadFile
-from fastapi import APIRouter, Request, Form, Response, Depends, Body
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi import APIRouter, Request, Form, Response
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 from fastapi.exceptions import HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from cart.redis_client import get_unique_item
-from cookie.jwt import create_token, decode_token
-from app.schemas import UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory, OrderIn, CardIn, Statuses
-from pydantic import EmailStr, BaseModel
+from cookie.jwt import create_token, decode_token, JWT_EXPIRE
+from app.schemas import (UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory, OrderIn, CardIn, Statuses,
+                         OrderInReq)
+from pydantic import EmailStr
 from app.crud import (create_user, get_user_by_id, update_user, get_user_by_login_data, add_token_to_blacklist,
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
                       get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db,
@@ -31,21 +32,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 count = 0
-
-
-class Order(BaseModel):
-    address: str
-    item_name: str
-    item_id: str
-    item_quantity: int
-    item_price: Decimal
-
-
-class Card(BaseModel):
-    card_owner: str
-    card_number: str
-    card_exp_date: str
-    card_cvv: str
     
 
 # A mapping dictionary for specific item types
@@ -245,11 +231,10 @@ async def get_items(request: Request, gender: str, item_type: str):
 router.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-def hash_password(password: str) -> str:
-    # Создание хеша
-    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-
-    return hashed_password.decode()
+# def hash_password(password: str) -> str:
+#     # Создание хеша
+#     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+#     return hashed_password.decode()
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
@@ -355,18 +340,23 @@ async def submit_form(
         user_in = UserIn(
             name=input_name,
             email=input_email,
-            # password=input_password,
             password=hashed_password,
             birthdate=birthdate,
             phone=input_phone,
             agreement=True if input_checkbox == 'on' else False
         )
-        # Call the create_user function
-        await create_user(user_in)
+        # Create the user
+        created_user = await create_user(user_in)
 
-        # Redirect to the home page
-        return RedirectResponse(url="/", status_code=303)
-        # return RedirectResponse(url=f"/user/{created_user['id']}", status_code=303)
+        # Generate the JWT token for the registered user
+        token = create_token(user_id=created_user["id"], user_email=created_user["email"],
+                             username=created_user["name"])
+
+        # Set up a redirect response and set the JWT token in the cookies
+        response = RedirectResponse(url="/?success=true", status_code=303)
+        response.set_cookie(key="JWT", value=token, httponly=True)  # Set the JWT token as an HTTP-only cookie
+
+        return response
 
     except ValueError as e:
         # Handle errors such as incorrect age, birthdate, or missing data
@@ -375,6 +365,22 @@ async def submit_form(
 
     except Exception as e:
         return templates.TemplateResponse(request, "input_form.html", {"error": f'Ошибка: {str(e)}'})
+
+
+@router.post("/logout/")
+async def logout(request: Request):
+    global count
+    token = request.cookies.get("JWT")
+    response = Response(status_code=200)  # 200 OK status for AJAX response
+
+    if token:
+        token_in = TokenIn(token=token)
+        response.delete_cookie("JWT")
+        await add_token_to_blacklist(token_in=token_in)
+
+    # Reset cart count to zero after logout
+    count = 0
+    return response
 
 
 @router.get("/login/")
@@ -389,22 +395,22 @@ async def login_page(request: Request):
         count = get_unique_item(user_id)
         nickname = decoded_token.username
 
-    return templates.TemplateResponse("login_form.html", {"request": request, "count": count, "nickname": nickname})
+    return templates.TemplateResponse(request, "login_form.html", {
+        "count": count,
+        "nickname": nickname
+    })
 
 
 @router.post("/login/")
 async def login_user(request: Request):
     form_data = await request.form()
     token = request.cookies.get("JWT")
-    response = RedirectResponse(url="/login?success=true", status_code=303)
+    response = RedirectResponse(url="/?success=true", status_code=303)
     if token is not None:
-        print(token)
         response.delete_cookie("JWT")
 
     try:
         email, password = form_data["email"], form_data["password"]
-        print(email)
-        print(password)
         current_user = await get_user_by_login_data(email=email)
         if not current_user or not verify_password(password, current_user["password"]):
             raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -413,43 +419,20 @@ async def login_user(request: Request):
         user_email = str(current_user["email"])
         username = str(current_user["name"])
         token = create_token(user_id=user_id, user_email=user_email, username=username)
-        print(f"Token: {token}")
 
-        response.set_cookie(key="JWT", value=token, httponly=True)  # Устанавливаем cookie с токеном
-
+        response.set_cookie(
+            key="JWT",
+            value=token,
+            httponly=False,  # Prevents JavaScript access
+            secure=True,  # Only sends cookie over HTTPS
+            max_age=JWT_EXPIRE * 60,  # Expire time in seconds
+            samesite="strict"  # CSRF protection
+        )
         return response
 
     except Exception as e:
         print(e)
         return {'msg': "user not exists"}
-
-
-@router.get("/logout/")
-async def logout_page(request: Request):
-    token = request.cookies.get("JWT")
-
-    if token:
-        decoded_token = decode_token(token)
-        user_id = decoded_token.id
-        count = get_unique_item(user_id)
-        nickname = decoded_token.username
-        return templates.TemplateResponse("logout.html", {"request": request, "count": count, "nickname": nickname})
-    return RedirectResponse(url="/login/")
-
-
-@router.post("/logout/")
-async def logout(request: Request):
-    token = request.cookies.get("JWT")
-    print(token)
-    if token:
-        response = Response(status_code=302)
-        response.headers["Location"] = "http://127.0.0.1:8000/"
-        token_in = TokenIn(token=token)
-        response.delete_cookie("JWT")
-        await add_token_to_blacklist(token_in=token_in)
-        # return RedirectResponse(url="/")
-        return response
-    return RedirectResponse(url="/login/")
 
 
 @router.get("/add-order/")
@@ -464,10 +447,6 @@ async def add_order_page(request: Request):
         item_amount = request.query_params.get("amount")
         item_name = request.query_params.get("itemName")
         price = request.query_params.get("price")
-        print(item_id)
-        print(item_amount)
-        print(item_name)
-        print(price)
 
         # Проверяем, были ли переданы необходимые параметры
         if item_id is None or item_amount is None or item_name is None:
@@ -482,8 +461,7 @@ async def add_order_page(request: Request):
         count = get_unique_item(decoded_token.id)
         nickname = decoded_token.username
 
-        return templates.TemplateResponse("add_order.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "add_order.html", {
             "itemId": item_id,
             "amount": item_amount,
             "user_id": decoded_token.id,
@@ -494,13 +472,6 @@ async def add_order_page(request: Request):
         })
 
     return RedirectResponse("/login/")
-
-
-class OrderInReq(BaseModel):
-    item_id: int
-    amount: int
-    itemName: str
-    address: str
 
 
 @router.post("/add-order/")
@@ -591,8 +562,11 @@ async def add_cart_page(request: Request):
         user_id = decoded_token.id
         count = get_unique_item(user_id)
         nickname = decoded_token.username
-        return templates.TemplateResponse(request, "add_card.html", {"user_id": decoded_token.id,
-                                                            "count": count, "nickname": nickname})
+        return templates.TemplateResponse(request, "add_card.html", {
+            "user_id": decoded_token.id,
+            "count": count,
+            "nickname": nickname
+        })
 
     return RedirectResponse("/login/")
 

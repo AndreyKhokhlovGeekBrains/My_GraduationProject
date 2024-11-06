@@ -74,3 +74,25 @@ class TokenIn(BaseModel):
 class Token(BaseModel):
     id: int
     token: str
+
+
+class OrderInReq(BaseModel):
+    item_id: int
+    amount: int
+    itemName: str
+    address: str
+
+
+class Order(BaseModel):
+    address: str
+    item_name: str
+    item_id: str
+    item_quantity: int
+    item_price: Decimal
+
+
+class Card(BaseModel):
+    card_owner: str
+    card_number: str
+    card_exp_date: str
+    card_cvv: str

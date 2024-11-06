@@ -1,3 +1,4 @@
+import jose
 from jose import jwt
 from pytz import timezone
 from pydantic import BaseModel
@@ -19,11 +20,11 @@ class TokenPayload(BaseModel):
     expire: str
     token_id: str
 
+
 def create_token(user_id: int, user_email: str, username: str) -> str:
     try:
         expire = datetime.datetime.now(timezone('UTC')) + datetime.timedelta(minutes=int(JWT_EXPIRE))
         data = TokenPayload(id=user_id, email=user_email, username=username, expire=str(expire), token_id=str(uuid.uuid4()))
-        print(data.model_dump())
         encoded_token = jwt.encode(data.model_dump(), JWT_SECRET_KEY, algorithm=ALGORITHM)
     except Exception as e:
         print(e)
@@ -31,12 +32,14 @@ def create_token(user_id: int, user_email: str, username: str) -> str:
 
     return encoded_token
 
+
 def decode_token(token: str) -> TokenPayload:
     try:
         decoded_jwt = jwt.decode(token, JWT_SECRET_KEY, algorithms=ALGORITHM)
         return TokenPayload(**decoded_jwt)
     except Exception as e:
         print(e)
+
 
 def validate_token(token):
     try:

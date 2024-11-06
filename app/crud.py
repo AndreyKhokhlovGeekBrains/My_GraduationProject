@@ -322,9 +322,6 @@ async def add_newsletter_mail(newsletter_in):
     await database.execute(query)
 
 
-
-
-
 async def add_token_to_blacklist(token_in):
     query = tokens.insert().values(**token_in.model_dump())
     await database.execute(query)

@@ -86,7 +86,6 @@ orders = Table(
     Column("user_id", Integer, ForeignKey("users.id")),
     Column("created_at", DateTime, server_default=func.now()),
     Column("delivered_at", DateTime, server_default=func.now(), nullable=True),
-    # Ну прям так мы заморачиваться мы не будем
     Column("status", String, server_default=None),
     Column("price", DECIMAL(10, 2), nullable=False),
     Column("amount", Integer, nullable=False),
