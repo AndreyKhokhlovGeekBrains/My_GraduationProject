@@ -1,5 +1,3 @@
-from sqlalchemy import Table, Column, Integer, String, Boolean, Date, DateTime, ARRAY, func, TEXT, create_engine, \
-    MetaData, ForeignKey
 # defining database app
 
 from sqlalchemy import (Table, Column, Integer, String, ForeignKey, Numeric, Enum, Boolean, Date,

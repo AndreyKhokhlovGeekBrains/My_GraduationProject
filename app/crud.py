@@ -328,5 +328,5 @@ async def add_token_to_blacklist(token_in):
 
 
 async def get_token(token):
-    query = tokens.select().where(positions.c.token == token)
+    query = tokens.select().where(tokens.c.token == token)
     await database.fetch_one(query)

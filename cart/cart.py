@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Request, Form, HTTPException
+from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse
 from .redis_client import (redis_get_from_cart, redis_add_to_cart, redis_remove_from_cart, get_unique_item,
                            redis_clear_cart)
 from cookie.jwt import decode_token
@@ -58,13 +58,9 @@ async def add_cart(request: Request, position_id: int = None, amount: int = 1):
 
     # Decode the JWT token and add the item to the cart if logged in
     decoded_token = decode_token(token)
-    status = redis_add_to_cart(user_id=decoded_token.id, position_id=position_id, amount=amount)
-
-    # Redirect or respond with JSON based on the addition result
-    if status.get("status") == 200:
-        return RedirectResponse(f"/cart?success=true", status_code=303)
-    else:
-        return RedirectResponse(f"/cart?success=false", status_code=303)
+    redis_add_to_cart(user_id=decoded_token.id, position_id=position_id, amount=amount)
+    # Respond with a JSON message confirming success
+    return JSONResponse(status_code=200, content={"msg": "Position successfully added to cart!"})
 
 
 @router.post("/delete/")

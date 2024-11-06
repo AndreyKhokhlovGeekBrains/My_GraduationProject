@@ -15,7 +15,9 @@ $(document).ready(function() {
                 data: { position_id: positionId, amount: amount },
                 success: function(data) {
                     alert(data.msg);
-                    updateCart();
+                    updateCart().then(function() {
+                        location.reload();
+                    });
                 },
                 error: function(xhr, status, error) {
                     alert("Failed to add position to cart.");
@@ -26,3 +28,20 @@ $(document).ready(function() {
         }
     });
 });
+
+// Function to update cart contents
+function updateCart() {
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            type: 'GET',
+            url: '/cart/get/',
+            success: function(data) {
+                $('#cart-items').html(data); // Update the contents of the element with ID cart-items
+                resolve(); // Successful update
+            },
+            error: function(xhr, status, error) {
+                reject(error); // Error during update
+            }
+        });
+    });
+}
