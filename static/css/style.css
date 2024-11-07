@@ -745,15 +745,72 @@ form[role="search"] input {
   padding: 15px 25px;
   border-radius: 10px;
   background: #3a68b8;
+}
+
+.total-amount {
+  margin-left: 30px;
+}
+
+.add-order-button {
+  display: flex;
+  justify-content: center;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #f26376;
+  color: #f26376;
+  max-width: 212px;
+  margin: 10px 30px;
+}
+
+.my-action .delete-item {
+  font-size: 12px;
+  color: white;
+  width: 70%;
+  padding: 10px;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-around;
+}
+
+.cart-item img {
+  width: revert-layer;
+  height: auto;
+}
+
+.cart-item-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 15px;
+  gap: 5px;
+}
+
+.cart-item-details a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.quantity-input {
+  width: 20%;
+  margin-left: 10px;
+}
 
   /* transition-duration: 0.3s; */
-  transition-timing-function: ease-out;
+  /* transition-timing-function: ease-out;
 
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 
   transition: all 0.5s; 
-}
+} */
 
 .my-action .button-2 {
   min-width: 130px;

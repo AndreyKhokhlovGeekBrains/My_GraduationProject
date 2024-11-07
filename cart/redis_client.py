@@ -24,50 +24,51 @@ def redis_backup():
 
 
 def redis_add_to_cart(user_id, position_id, amount):
-    if client.exists(user_id):
+    try:
         client.hincrby(user_id, position_id, amount=amount)
         return {"status": 200}
-    else:
-        client.hincrby(user_id, position_id, amount=amount)
-        return {"status": 200}
+    except Exception as e:
+        print(f"Error adding to cart: {e}")
+        return {"status": 500, "msg": "Failed to add to cart"}
 
 
 def redis_remove_from_cart(user_id, position_id, amount):
     try:
-        if client.exists(user_id):
-            key_type = client.type(user_id)
-            if key_type == b'hash':
-                current_amount = client.hget(user_id, position_id)
-                if current_amount is not None:
-                    new_amount = int(current_amount) - amount
-                    if new_amount <= 0:
-                        client.hdel(user_id, position_id)
-                    else:
-                        client.hincrby(user_id, position_id, amount=-amount)
-                return {"status": 200}
-        return {"status": 401}
+        if client.exists(user_id) and client.type(user_id) == b'hash':
+            current_amount = client.hget(user_id, position_id)
+            if current_amount is not None:
+                new_amount = int(current_amount) - amount
+                if new_amount <= 0:
+                    client.hdel(user_id, position_id)
+                else:
+                    client.hincrby(user_id, position_id, amount=-amount)
+            return {"status": 200}
+        return {"status": 404, "msg": "Item not found in cart"}
     except Exception as e:
-        print(e)
+        print(f"Error removing from cart: {e}")
+        return {"status": 500, "msg": "Failed to remove from cart"}
 
 
 def redis_get_from_cart(user_id: int):
-    values = None
-    if client.exists(user_id):
-        key_type = client.type(user_id)
-        if key_type == b'hash':
-            values = client.hgetall(user_id)
-            print(values)
-            values = {key.decode('utf-8'): value.decode('utf-8') for key, value in values.items()}  # Decode both keys and values
-    else:
-        values = None
-    return values
+    try:
+        if client.exists(str(user_id)) and client.type(str(user_id)) == b'hash':
+            values = client.hgetall(str(user_id))
+            # Decode both keys and values from bytes to strings
+            return {key.decode('utf-8'): value.decode('utf-8') for key, value in values.items()}
+        return {}
+    except Exception as e:
+        print(f"Error retrieving cart: {e}")
+        return {}
 
 
 def redis_clear_cart(user_email):
-    if client.exists(user_email):
-        client.delete(user_email)
-
-    return True
+    try:
+        if client.exists(user_email):
+            client.delete(user_email)
+        return {"status": 200, "msg": "Cart cleared successfully"}
+    except Exception as e:
+        print(f"Error clearing cart: {e}")
+        return {"status": 500, "msg": "Failed to clear cart"}
 
 
 def get_unique_item(user_id):
@@ -76,3 +77,19 @@ def get_unique_item(user_id):
         if key_type == b'hash':
             return client.hlen(user_id)
     return 0
+
+
+def update_item_quantity_in_cart(user_id: int, item_id: int, quantity: int) -> bool:
+    try:
+        cart_key = f"cart:{user_id}"
+        if quantity > 0:
+            client.hset(cart_key, str(item_id), str(quantity))  # Make sure item_id is a string
+            print(f"Updated cart: {client.hgetall(cart_key)}")  # Log the updated cart
+        else:
+            client.hdel(cart_key, str(item_id))
+        return True
+    except Exception as e:
+        print(f"Error updating item quantity: {e}")
+        return False
+
+

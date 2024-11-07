@@ -1,5 +1,6 @@
 # database operations
-from .models import users, newsletter_subscriptions, tokens, products, item_type, cards, orders
+from cart.redis_client import client
+from .models import users, newsletter_subscriptions, tokens, products, item_type, cards, orders, order_items
 from .db import database
 from sqlalchemy import select, insert
 from typing import Optional
@@ -330,3 +331,51 @@ async def add_token_to_blacklist(token_in):
 async def get_token(token):
     query = tokens.select().where(tokens.c.token == token)
     await database.fetch_one(query)
+
+
+async def create_order(user_id: int, address: str, cart_content: dict):
+    total_amount = 0.0
+    order_items_list = []
+
+    # Start a database transaction
+    async with database.transaction():
+        # Insert the order into the orders table
+        order_insert_query = insert(orders).values(
+            user_id=user_id,
+            address=address,
+            total_amount=total_amount  # Initial total, to be updated later
+        )
+        # Execute the insert query and get the order ID
+        order_id = await database.execute(order_insert_query)
+
+        # Iterate through the cart content and add items to the order
+        for item_id, quantity in cart_content.items():
+            # Fetch the item details from the database
+            item = await get_item_by_id(item_id)  # Make sure this function is defined correctly
+            if not item:
+                continue  # Skip if the item is not found
+
+            quantity = int(quantity)
+            item_total = quantity * float(item.price) * (1 - float(item.discount or 0))
+            total_amount += item_total
+
+            # Insert the order item into the order_items table
+            order_item_insert_query = insert(order_items).values(
+                order_id=order_id,
+                product_id=item.id,
+                price=float(item.price),
+                quantity=quantity
+            )
+            await database.execute(order_item_insert_query)
+            order_items_list.append({
+                "order_id": order_id,
+                "product_id": item.id,
+                "price": float(item.price),
+                "quantity": quantity
+            })
+
+        # Update the total amount in the orders table
+        update_query = orders.update().where(orders.c.id == order_id).values(total_amount=total_amount)
+        await database.execute(update_query)
+
+    return {"order_id": order_id, "order_items": order_items_list}

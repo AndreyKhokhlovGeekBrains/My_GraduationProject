@@ -1,0 +1,46 @@
+{% extends 'index.html' %}
+
+{% block title %}
+Оформление заказа
+{% endblock %}
+
+{% block content %}
+<h2>Оформление заказа</h2>
+
+<form id="add-order-form" action="/add-order/" method="post">
+    <!-- Delivery Address -->
+    <div class="form-group">
+        <label for="address">Адрес доставки:</label>
+        <input type="text" id="address" name="address" class="form-control" required placeholder="Введите адрес">
+    </div>
+
+    <h3>Ваши товары:</h3>
+    <div class="order-summary">
+        {% for item in items %}
+            <div class="order-item">
+                <img src="/static/img/featured_items/{{ item.image_filename }}" alt="Изображение отсутствует" class="item-image">
+                <div class="item-details">
+                    <p><strong>{{ item.title }}</strong></p>
+                    <p>Количество: {{ content[item.id|string] | int }}</p>
+                    <p>Цена: {{ item.price | round(2) }} руб.</p>
+                    {% if item.discount is not none %}
+                        <p>Скидка: {{ (item.discount * 100) | round(2) }}%</p>
+                    {% endif %}
+                    <p>Итого за товар: {{ (content[item.id|string] | int) * item.price * (1 - (item.discount or 0)) | round(2) }} руб.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Total Amount -->
+    <div class="total-amount">
+        <h3>Общая сумма: {{ (total_amount.value or 0.0) | round(2) }} руб.</h3>
+    </div>
+
+    <!-- Submit Order Button -->
+    <button type="submit" class="btn btn-primary">Оформить заказ</button>
+</form>
+
+<!-- Include any necessary JavaScript -->
+<script src="/static/js/add_order_to_db.js"></script>
+{% endblock %}

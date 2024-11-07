@@ -4,7 +4,6 @@ from sqlalchemy import (Table, Column, Integer, String, ForeignKey, Numeric, Enu
                         DateTime, ARRAY, func, DECIMAL)
 from .db import metadata
 from app.schemas import GenderCategory
-from datetime import datetime
 
 
 item_type = Table(
@@ -80,12 +79,21 @@ orders = Table(
     "orders",
     metadata,
     Column("id", Integer, primary_key=True),
-    Column("item_id", Integer, ForeignKey("products.id")),
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("created_at", DateTime, server_default=func.now()),
-    Column("delivered_at", DateTime, server_default=func.now(), nullable=True),
-    Column("status", String, server_default=None),
-    Column("price", DECIMAL(10, 2), nullable=False),
-    Column("amount", Integer, nullable=False),
-    Column("address", String(255), nullable=False),
+    Column("user_id", Integer, ForeignKey("users.id"), nullable=False),  # Ensures user is specified
+    Column("created_at", DateTime, server_default=func.now(), nullable=False),  # Default creation timestamp
+    Column("delivered_at", DateTime, nullable=True),  # Optional delivery timestamp without default
+    Column("status", String, server_default="Pending", nullable=False),  # Default status set to 'Pending'
+    Column("total_amount", DECIMAL(10, 2), nullable=False),  # Renamed to total_amount to capture the total
+    Column("address", String(255), nullable=False)  # Delivery address field remains unchanged
+)
+
+
+order_items = Table(
+    "order_items",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("order_id", Integer, ForeignKey("orders.id"), nullable=False),  # Links to orders table
+    Column("product_id", Integer, ForeignKey("products.id"), nullable=False),  # Links to products table
+    Column("price", DECIMAL(10, 2), nullable=False),  # Price of the product at the time of the order
+    Column("quantity", Integer, nullable=False)  # Quantity of the product ordered
 )

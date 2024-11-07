@@ -7,7 +7,8 @@ from typing import Optional
 from fastapi.exceptions import HTTPException
 from fastapi.staticfiles import StaticFiles
 
-from cart.redis_client import get_unique_item
+from app.db import database
+from cart.redis_client import get_unique_item, redis_get_from_cart, redis_clear_cart
 from cookie.jwt import create_token, decode_token, JWT_EXPIRE
 from app.schemas import (UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory, OrderIn, CardIn, Statuses,
                          OrderInReq)
@@ -16,7 +17,7 @@ from app.crud import (create_user, get_user_by_id, update_user, get_user_by_logi
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
                       get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db,
                       get_item_type_name_by_id, get_item_type_id_by_name, is_user_have_card,
-                      add_order_to_db, add_card, get_item_by_id)
+                      add_order_to_db, add_card, get_item_by_id, create_order)
 
 import bcrypt
 import logging
@@ -435,140 +436,87 @@ async def login_user(request: Request):
         return {'msg': "user not exists"}
 
 
-@router.get("/add-order/")
-async def add_order_page(request: Request):
-    token = request.cookies.get("JWT")
-    global count
-    if token:
-        decoded_token = decode_token(token)
-
-        # Получаем параметры из запроса
-        item_id = request.query_params.get("item_id")
-        item_amount = request.query_params.get("amount")
-        item_name = request.query_params.get("itemName")
-        price = request.query_params.get("price")
-
-        # Проверяем, были ли переданы необходимые параметры
-        if item_id is None or item_amount is None or item_name is None:
-            raise HTTPException(status_code=400, detail="item_id, amount, and itemName are required")
-
-        try:
-            item_id = int(item_id)
-            item_amount = int(item_amount)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="item_id and amount must be integers")
-
-        count = get_unique_item(decoded_token.id)
-        nickname = decoded_token.username
-
-        return templates.TemplateResponse(request, "add_order.html", {
-            "itemId": item_id,
-            "amount": item_amount,
-            "user_id": decoded_token.id,
-            "item_name": item_name,
-            "count": count,
-            "nickname": nickname,
-            "price": price,
-        })
-
-    return RedirectResponse("/login/")
-
-
 @router.post("/add-order/")
-async def add_order(request: Request, order: OrderInReq):
+async def add_order(
+    request: Request,
+    address: str = Form(...),  # Retrieve the address from the form submission
+):
+    # Retrieve the JWT from cookies
     token = request.cookies.get("JWT")
-    print(token)
     if not token:
-        return RedirectResponse(url="/login/", status_code=303)
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
+    # Decode the token to get the user information
     decoded_token = decode_token(token)
-    print(f"decoded_token: {decoded_token}, {decoded_token.id}")
+    user_id = decoded_token.id
 
-    # Получение данных формы
-    order_data = await request.json()
-    print(order_data)
+    # Retrieve the items from the user's cart
+    cart_content = redis_get_from_cart(user_id=user_id)
+    if not cart_content:
+        raise HTTPException(status_code=400, detail="Cart is empty")
 
-    # Теперь вы можете использовать order_data['item_id'], order_data['amount'] и т.д.
-    item_id = order.item_id
-    item_quantity = order.amount
-    item_name = order.itemName  # noqa
-    address = order.address
+    # Use the create_order function to handle the order creation
+    order, order_items = await create_order(user_id, address, cart_content)
 
-    # Получаем информацию о товаре из базы данных
-    item_from_db = await get_item_by_id(int(item_id))
-    item_price_str = item_from_db["price"]
+    # Clear the user's cart after the order is placed
+    redis_clear_cart(user_id)
 
-    if item_from_db:
-        # Проверяем, был ли передан item_id
-        if item_id is None:
-            raise HTTPException(status_code=400, detail="item_id is required")
-
-        try:
-            item_id = int(item_id)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="item_id must be an integer")
-
-    # Проверяем, был ли передан item_quantity
-        if item_quantity is None:
-            raise HTTPException(status_code=400, detail="item_quantity is required")
-
-        try:
-            item_quantity = int(item_quantity)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="item_quantity must be an integer")
-
-    # Рассчитываем общую цену
-    try:
-        item_price = Decimal(int(item_price_str) * item_quantity)
-        print(f"Item price: {item_price}")
-    except Exception as e:
-        print(f"Error calculating item price: {e}")
-        raise HTTPException(status_code=500, detail="Error calculating item price")
-
-    # Проверяем наличие карты у пользователя
-    user_card = await is_user_have_card(decoded_token.id)
-    print(Statuses.placing.value)
-    print(f"User  card: {user_card}")
-    if not user_card:
-        print("No card found")
-        return RedirectResponse(url="/add-card/", status_code=303)
-
-    user_id = int(decoded_token.id)
-    # Создаем объект OrderIn с правильным значением статуса
-    order_in = OrderIn(
-        user_id=user_id,
-        item_id=item_id,
-        amount=item_quantity,
-        price=item_price,
-        status=str(Statuses.placing.value),
-        address=address,
-    )
-
-    # Добавляем заказ в базу данных
-    order_id = await add_order_to_db(order_in)
-
-    if not order_id:
-        raise HTTPException(status_code=500, detail="Failed to create order")
-    else:
-        return {"success": True, "order_id": order_id}
+    # Redirect to a confirmation page
+    return RedirectResponse(url="/order-confirmation", status_code=303)
 
 
-@router.get("/add-card/")
-async def add_cart_page(request: Request):
+@router.get("/order-form/")
+async def order_form(request: Request):
     global count
+    # Retrieve the JWT from cookies to identify the user
     token = request.cookies.get("JWT")
-    if token:
-        decoded_token = decode_token(token)
-        user_id = decoded_token.id
-        count = get_unique_item(user_id)
-        nickname = decoded_token.username
-        return templates.TemplateResponse(request, "add_card.html", {
-            "user_id": decoded_token.id,
-            "count": count,
-            "nickname": nickname
+    if not token:
+        # Redirect to login if the user is not authenticated
+        return RedirectResponse("/login/")
+
+    # Decode the JWT token to get user information
+    decoded_token = decode_token(token)
+    user_id = decoded_token.id
+
+    # Retrieve the items in the cart from Redis
+    cart_content = redis_get_from_cart(user_id=user_id)
+    if not cart_content:
+        # If the cart is empty, redirect back to the cart page
+        return RedirectResponse("/cart/")
+
+    # Initialize variables to store item details and total amount
+    items = []
+    total_amount = 0.0
+
+    # Iterate through the items in the cart to fetch details from the database
+    for item_id, quantity in cart_content.items():
+        item = await get_item_by_id(item_id)
+        if not item:
+            continue  # Skip if the item is not found
+
+        quantity = int(quantity)
+        item_total = quantity * float(item.price) * (1 - (float(item.discount) or 0))
+        total_amount += item_total
+
+        # Append the item details to the list
+        items.append({
+            "id": item.id,
+            "title": item.title,
+            "price": item.price,
+            "discount": item.discount,
+            "image_filename": item.image_filename,
+            "quantity": quantity,
+            "item_total": item_total
         })
 
-    return RedirectResponse("/login/")
+    # Render the order form template with the items and total amount
+    return templates.TemplateResponse("order_form.html", {
+        "request": request,
+        "items": items,
+        "total_amount": total_amount,
+        "content": cart_content,
+        "count": count
+    })
 
 
 @router.post("/add-card/")

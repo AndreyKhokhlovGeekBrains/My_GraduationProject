@@ -5,38 +5,69 @@
 {% endblock %}
 
 {% block content %}
-<div id="cart-items">
+<div class="cart-items" id="cart-items">
   {% if items is none or items | length == 0 %}
     <div>
       <h2>Корзина пуста</h2>
     </div>
   {% else %}
+    {% set total_amount = {'value': 0.0} %}  <!-- Use a dictionary to hold the total amount -->
+
     {% for item in items %}
-      <div class="cart-item">
-        <img src="/static/img/featured_items/{{ item.image_filename }}" alt="Изображение отсутствует" width="200" height="300">
-        <div id="pos_title">
-          <a>{{ item.title }}</a>
-        </div>
-        <a></a>
-        <div class="item-id">
-          <a>ID: {{ item.id }}</a>
-        </div>
-        <div class="other-info">
-          {% set quantity = content[item.id|string] if item.id|string in content else 1 %}
-          <a>Quantity: {{ quantity }}</a>
-          <a>Price: {{ item.price }}</a>
-        </div>
-        <div>
-          <!-- Кнопка "Добавить в корзину" -->
-          <button class="add-order button" data-item-id="{{ item.id }}" data-item-amount="{{ quantity }}" data-item-name="{{ item.title }}" data-item-price="{{ item.price }}">Добавить в корзину</button>
-          <button class="delete-item button" data-item-id="{{ item.id }}">Удалить из корзины</button>
+      <div class="my-action">
+        <div class="cart-item">
+          <img src="/static/img/featured_items/{{ item.image_filename }}" alt="Изображение отсутствует" width="200" height="300">
+
+          <div class="cart-item-details" data-item-id="{{ item.id }}" data-item-title="{{ item.title }}" data-item-price="{{ item.price }}" data-item-quantity="{{ quantity }}">
+            <a>{{ item.title }}</a>
+            <a>ID: {{ item.id }}</a>
+
+            {% set quantity = (content[item.id|string] | int) if item.id|string in content else 1 %}
+            <div class="quantity-controls">Quantity: 
+              <input 
+                type="number" 
+                class="quantity-input" 
+                data-item-id="{{ item.id }}" 
+                value="{{ quantity }}" 
+                min="1" 
+                step="1" 
+              />
+            </div>       
+
+            <a class="item-price">Price: {{ item.price }}</a>
+
+            {% if item.discount is not none %}
+              <a class="item-discount">Discount: {{ (item.discount * 100) | round(2) }}%</a>
+            {% endif %}
+
+            <!-- Ensure item.price and item.discount are cast to float -->
+            {% set price = item.price | float %}
+            {% set item_discount = item.discount if item.discount is not none else 0 %}
+            {% set discount = item_discount | float %}
+            {% set item_total = (quantity * price * (1 - discount)) %}
+
+            <!-- Update the total amount in the dictionary -->
+            {% set _ = total_amount.update({'value': total_amount.value + item_total}) %}  
+
+            <a class="item-total">Item Total: {{ item_total | round(2) }}</a>
+            <button class="submit-button delete-item" data-item-id="{{ item.id }}">Удалить из корзины</button>
+          </div>
         </div>
       </div>
     {% endfor %}
+
+    <div class="total-amount">
+      <h3>Total Amount: {{ total_amount.value | round(2) }}</h3>
+    </div>
+
+    <!-- Single button for placing an order -->
+    <button class="add-order-button">Оформить заказ</button>
   {% endif %}
 </div>
+
 <div id="toast" class="toast-message">Предмет удален!</div>
 
 <script src="/static/js/add_order.js"></script>
 <script src="/static/js/delete_item.js"></script>
+<script src="/static/js/update_quantity.js"></script>
 {% endblock %}
