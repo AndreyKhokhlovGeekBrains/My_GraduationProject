@@ -3,6 +3,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from .redis_client import (redis_get_from_cart, redis_add_to_cart, redis_remove_from_cart, get_unique_item,
                            redis_clear_cart, update_item_quantity_in_cart)
+from app.schemas import QuantityUpdateRequest
 from cookie.jwt import decode_token
 from app.crud import get_item_by_id, get_items_by_ids
 from fastapi.responses import JSONResponse
@@ -18,6 +19,7 @@ async def get_cart(request: Request):
     if token is not None:
         decoded_token = decode_token(token)
         content = redis_get_from_cart(user_id=decoded_token.id)
+        print(f'Content on get: {content}')
         count = get_unique_item(user_id=decoded_token.id)
         nickname = decoded_token.username
         if content:
@@ -75,19 +77,24 @@ async def del_cart(request: Request):
     return RedirectResponse("/login/")
 
 
-@router.post("/cart/update_quantity/")
-async def update_cart_quantity(request: Request, item_id: int, quantity: int):
-    print(f'Look up value! Item ID: Hello')
-    # token = request.cookies.get("JWT")
-    # if not token:
-    #     raise HTTPException(status_code=401, detail="Unauthorized")
-    #
-    # decoded_token = decode_token(token)
-    # # Update the quantity in your Redis or database
-    # success = update_item_quantity_in_cart(user_id=decoded_token.id, item_id=item_id, quantity=quantity)
-    #
-    # if success:
-    #     return {"success": True}
-    # else:
-    #     return {"success": False}
+@router.post("/update_quantity/")
+async def update_cart_quantity(quantity_update: QuantityUpdateRequest, request: Request):
+    item_id = quantity_update.item_id
+    quantity = quantity_update.quantity
+
+    # print("Received item_id:", item_id)
+    # print("Received quantity:", quantity)
+
+    token = request.cookies.get("JWT")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    decoded_token = decode_token(token)
+    success = update_item_quantity_in_cart(user_id=decoded_token.id, item_id=item_id, quantity=quantity)
+
+    if success:
+        return {"success": True}
+    else:
+        return {"success": False}
+
 

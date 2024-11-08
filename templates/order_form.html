@@ -26,7 +26,7 @@
                     {% if item.discount is not none %}
                         <p>Скидка: {{ (item.discount * 100) | round(2) }}%</p>
                     {% endif %}
-                    <p>Итого за товар: {{ (content[item.id|string] | int) * item.price * (1 - (item.discount or 0)) | round(2) }} руб.</p>
+                    <p>Итого за товар: {{ item.item_total }} руб.</p>
                 </div>
             </div>
         {% endfor %}

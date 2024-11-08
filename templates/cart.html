@@ -47,8 +47,7 @@
             {% set item_total = (quantity * price * (1 - discount)) %}
 
             <!-- Update the total amount in the dictionary -->
-            {% set _ = total_amount.update({'value': total_amount.value + item_total}) %}  
-
+            {% set _ = total_amount.update({'value': total_amount.value + item_total}) %}
             <a class="item-total">Item Total: {{ item_total | round(2) }}</a>
             <button class="submit-button delete-item" data-item-id="{{ item.id }}">Удалить из корзины</button>
           </div>
@@ -70,4 +69,5 @@
 <script src="/static/js/add_order.js"></script>
 <script src="/static/js/delete_item.js"></script>
 <script src="/static/js/update_quantity.js"></script>
+
 {% endblock %}

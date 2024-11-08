@@ -54,7 +54,8 @@ def redis_get_from_cart(user_id: int):
         if client.exists(str(user_id)) and client.type(str(user_id)) == b'hash':
             values = client.hgetall(str(user_id))
             # Decode both keys and values from bytes to strings
-            return {key.decode('utf-8'): value.decode('utf-8') for key, value in values.items()}
+            decoded_values = {key.decode('utf-8'): value.decode('utf-8') for key, value in values.items()}
+            return decoded_values
         return {}
     except Exception as e:
         print(f"Error retrieving cart: {e}")
@@ -81,15 +82,15 @@ def get_unique_item(user_id):
 
 def update_item_quantity_in_cart(user_id: int, item_id: int, quantity: int) -> bool:
     try:
-        cart_key = f"cart:{user_id}"
         if quantity > 0:
-            client.hset(cart_key, str(item_id), str(quantity))  # Make sure item_id is a string
-            print(f"Updated cart: {client.hgetall(cart_key)}")  # Log the updated cart
+            client.hset(str(user_id), str(item_id), str(quantity))
         else:
-            client.hdel(cart_key, str(item_id))
+            client.hdel(str(user_id), str(item_id))  # Remove the item if quantity is less than or equal to 0
         return True
     except Exception as e:
         print(f"Error updating item quantity: {e}")
         return False
+
+
 
 

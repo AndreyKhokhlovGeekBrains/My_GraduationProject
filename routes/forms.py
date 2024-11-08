@@ -6,8 +6,6 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional
 from fastapi.exceptions import HTTPException
 from fastapi.staticfiles import StaticFiles
-
-from app.db import database
 from cart.redis_client import get_unique_item, redis_get_from_cart, redis_clear_cart
 from cookie.jwt import create_token, decode_token, JWT_EXPIRE
 from app.schemas import (UserIn, NewsletterIn, TokenIn, ItemIn, GenderCategory, OrderIn, CardIn, Statuses,
@@ -22,10 +20,7 @@ from app.crud import (create_user, get_user_by_id, update_user, get_user_by_logi
 import bcrypt
 import logging
 from datetime import datetime
-
 import json
-
-from decimal import Decimal
 
 logging.basicConfig(level=logging.INFO)
 router = APIRouter()
@@ -440,7 +435,7 @@ async def login_user(request: Request):
 async def add_order(
     request: Request,
     address: str = Form(...),  # Retrieve the address from the form submission
-):
+    ):
     # Retrieve the JWT from cookies
     token = request.cookies.get("JWT")
     if not token:
@@ -479,10 +474,10 @@ async def order_form(request: Request):
     user_id = decoded_token.id
 
     # Retrieve the items in the cart from Redis
-    cart_content = redis_get_from_cart(user_id=user_id)
+    cart_content = redis_get_from_cart(user_id=user_id)  # Contains item id and quantity
     if not cart_content:
-        # If the cart is empty, redirect back to the cart page
-        return RedirectResponse("/cart/")
+        # If the cart is empty, return a JSON response indicating this
+        return RedirectResponse("/")
 
     # Initialize variables to store item details and total amount
     items = []
@@ -490,12 +485,15 @@ async def order_form(request: Request):
 
     # Iterate through the items in the cart to fetch details from the database
     for item_id, quantity in cart_content.items():
-        item = await get_item_by_id(item_id)
+        item = await get_item_by_id(int(item_id))
         if not item:
             continue  # Skip if the item is not found
 
         quantity = int(quantity)
-        item_total = quantity * float(item.price) * (1 - (float(item.discount) or 0))
+        discount = 0
+        if item.discount is not None:
+            discount = float(item.discount)
+        item_total = quantity * float(item.price) * (1 - discount)
         total_amount += item_total
 
         # Append the item details to the list
@@ -506,12 +504,13 @@ async def order_form(request: Request):
             "discount": item.discount,
             "image_filename": item.image_filename,
             "quantity": quantity,
-            "item_total": item_total
+            "item_total": round(item_total, 2)
         })
 
+    # print(f'Items dict: {items}')
+
     # Render the order form template with the items and total amount
-    return templates.TemplateResponse("order_form.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "order_form.html", {
         "items": items,
         "total_amount": total_amount,
         "content": cart_content,

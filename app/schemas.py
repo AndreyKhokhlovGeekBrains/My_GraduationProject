@@ -96,3 +96,8 @@ class Card(BaseModel):
     card_number: str
     card_exp_date: str
     card_cvv: str
+
+
+class QuantityUpdateRequest(BaseModel):
+    item_id: int
+    quantity: int
