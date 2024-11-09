@@ -49,7 +49,7 @@
             <!-- Update the total amount in the dictionary -->
             {% set _ = total_amount.update({'value': total_amount.value + item_total}) %}
             <a class="item-total">Item Total: {{ item_total | round(2) }}</a>
-            <button class="submit-button delete-item" data-item-id="{{ item.id }}">Удалить из корзины</button>
+            <button class="submit-button delete-item" data-item-id="{{ item.id }}">Delete from cart</button>
           </div>
         </div>
       </div>
