@@ -14,7 +14,9 @@ $(document).ready(function() {
                 url: '/cart/add/',
                 data: { position_id: positionId, amount: amount },
                 success: function(data) {
-                    alert(data.msg);
+                    if (data.msg) {
+                        sessionStorage.setItem("toastMessage", data.msg);
+                    }
                     updateCart().then(function() {
                         location.reload();
                     });
@@ -45,3 +47,24 @@ function updateCart() {
         });
     });
 }
+
+// Function to show the toast message
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    // Hide the toast after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3500);
+}
+
+// Check for a toast message in sessionStorage when the page loads
+window.addEventListener("load", () => {
+    const message = sessionStorage.getItem("toastMessage");
+    if (message) {
+        showToast(message);
+        sessionStorage.removeItem("toastMessage"); // Clear the message after showing it
+    }
+});

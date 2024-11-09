@@ -1029,6 +1029,7 @@ input {
 .toast-message.show, .toast-message-failure.show {
   visibility: visible;
   opacity: 1;
+  animation: fadein 0.5s, fadeout 0.5s 3s;
 }
 
 @keyframes fadein {

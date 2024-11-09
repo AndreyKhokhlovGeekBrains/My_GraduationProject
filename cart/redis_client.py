@@ -32,18 +32,19 @@ def redis_add_to_cart(user_id, position_id, amount):
         return {"status": 500, "msg": "Failed to add to cart"}
 
 
-def redis_remove_from_cart(user_id, position_id, amount):
+def redis_remove_from_cart(user_id, position_id):
+    print(f'Client: {user_id}, {position_id}')
     try:
+        # Check if the user cart exists and is a hash
         if client.exists(user_id) and client.type(user_id) == b'hash':
-            current_amount = client.hget(user_id, position_id)
-            if current_amount is not None:
-                new_amount = int(current_amount) - amount
-                if new_amount <= 0:
-                    client.hdel(user_id, position_id)
-                else:
-                    client.hincrby(user_id, position_id, amount=-amount)
-            return {"status": 200}
-        return {"status": 404, "msg": "Item not found in cart"}
+            # Check if the item exists in the cart
+            if client.hexists(user_id, position_id):
+                # Delete the item from the cart
+                client.hdel(user_id, position_id)
+                return {"status": 200, "msg": "Item removed from cart"}
+            else:
+                return {"status": 404, "msg": "Item not found in cart"}
+        return {"status": 404, "msg": "Cart not found"}
     except Exception as e:
         print(f"Error removing from cart: {e}")
         return {"status": 500, "msg": "Failed to remove from cart"}

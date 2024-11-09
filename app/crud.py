@@ -2,7 +2,7 @@
 from cart.redis_client import client
 from .models import users, newsletter_subscriptions, tokens, products, item_type, cards, orders, order_items
 from .db import database
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update
 from typing import Optional
 from app.schemas import GenderCategory
 from decimal import Decimal
@@ -40,6 +40,30 @@ async def populate_item_types():
         print(f"New item types inserted successfully: {new_item_types}")
     else:
         print("All item types already exist. No new types inserted.")
+
+
+async def get_quantity(product_id: int):
+    query = select(products.c.id, products.c.quantity).where(products.c.id == product_id)
+    result = await database.fetch_one(query)
+    if result:
+        return result["quantity"]
+    else:
+        raise ValueError(f'Product with id {product_id} not found')
+
+
+async def set_quantity(product_id: int, new_quantity: int):
+    query = select(products.c.id).where(products.c.id == product_id)
+    result = await database.fetch_one(query)
+    if result:
+        update_query = (
+            update(products)
+            .where(products.c.id == product_id)
+            .values(quantity=new_quantity)
+        )
+        await database.execute(update_query)
+        print(f'Set quantity for product with id {product_id} to {new_quantity}')
+    else:
+        raise ValueError(f'Product with id {product_id} not found')
 
 
 async def get_item_type_id_by_name(item_type_name: str):
