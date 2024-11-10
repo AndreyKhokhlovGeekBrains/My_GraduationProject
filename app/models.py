@@ -46,19 +46,6 @@ users = Table(
     Column("status", String(50), nullable=False, server_default="Active")
 )
 
-cards = Table(
-    "cards",  # Имя таблицы
-    metadata,  # Объект MetaData
-    Column("id", Integer, primary_key=True),
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("card_owner", String(64), nullable=False, unique=True),
-    Column("card_number", String(20), nullable=False, unique=True),
-    Column("card_exp_date", String(5), nullable=False, unique=True),
-    Column("card_cvv", String(3), nullable=False, unique=True),
-    Column("created_at", DateTime, server_default=func.now()),  # Дата создания
-    Column("updated_at", DateTime, server_default=func.now(), onupdate=func.now()),  # Дата обновления
-)
-
 newsletter_subscriptions = Table(
     "newsletter_sbsr",
     metadata,
@@ -82,9 +69,9 @@ orders = Table(
     Column("user_id", Integer, ForeignKey("users.id"), nullable=False),  # Ensures user is specified
     Column("created_at", DateTime, server_default=func.now(), nullable=False),  # Default creation timestamp
     Column("delivered_at", DateTime, nullable=True),  # Optional delivery timestamp without default
-    Column("status", String, server_default="Pending", nullable=False),  # Default status set to 'Pending'
-    Column("total_amount", DECIMAL(10, 2), nullable=False),  # Renamed to total_amount to capture the total
-    Column("address", String(255), nullable=False)  # Delivery address field remains unchanged
+    Column("status", String(50), server_default="Pending", nullable=False),  # Default status set to 'Pending'
+    Column("total_amount", DECIMAL(10, 2), nullable=False),
+    Column("address", String(255), nullable=False)
 )
 
 
@@ -95,5 +82,20 @@ order_items = Table(
     Column("order_id", Integer, ForeignKey("orders.id"), nullable=False),  # Links to orders table
     Column("product_id", Integer, ForeignKey("products.id"), nullable=False),  # Links to products table
     Column("price", DECIMAL(10, 2), nullable=False),  # Price of the product at the time of the order
+    Column("discount", DECIMAL(5,4), nullable=True),
     Column("quantity", Integer, nullable=False)  # Quantity of the product ordered
 )
+
+# cards = Table(
+#     "cards",
+#     metadata,
+#     Column("id", Integer, primary_key=True),
+#     Column("user_id", Integer, ForeignKey("users.id")),
+#     Column("card_owner", String(64), nullable=False, unique=True),
+#     Column("card_number", String(20), nullable=False, unique=True),
+#     Column("card_exp_date", String(5), nullable=False, unique=True),
+#     Column("card_cvv", String(3), nullable=False, unique=True),
+#     Column("created_at", DateTime, server_default=func.now()),
+#     Column("updated_at", DateTime, server_default=func.now(), onupdate=func.now())
+# )
+

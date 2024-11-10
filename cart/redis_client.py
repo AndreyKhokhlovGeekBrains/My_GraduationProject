@@ -63,10 +63,10 @@ def redis_get_from_cart(user_id: int):
         return {}
 
 
-def redis_clear_cart(user_email):
+def redis_clear_cart(user_id):
     try:
-        if client.exists(user_email):
-            client.delete(user_email)
+        if client.exists(user_id):
+            client.delete(user_id)
         return {"status": 200, "msg": "Cart cleared successfully"}
     except Exception as e:
         print(f"Error clearing cart: {e}")
@@ -91,7 +91,4 @@ def update_item_quantity_in_cart(user_id: int, item_id: int, quantity: int) -> b
     except Exception as e:
         print(f"Error updating item quantity: {e}")
         return False
-
-
-
 

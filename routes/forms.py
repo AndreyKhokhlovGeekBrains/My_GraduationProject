@@ -1,7 +1,7 @@
 # form handling routes
 from fastapi import UploadFile
 from fastapi import APIRouter, Request, Form, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 from fastapi.exceptions import HTTPException
@@ -14,8 +14,8 @@ from pydantic import EmailStr
 from app.crud import (create_user, get_user_by_id, update_user, get_user_by_login_data, add_token_to_blacklist,
                       add_newsletter_mail, add_item, load_featured_items, get_items_by_category,
                       get_all_items, get_product_by_id, post_edited_product_item, search_items_in_db,
-                      get_item_type_name_by_id, get_item_type_id_by_name, is_user_have_card,
-                      add_order_to_db, add_card, get_item_by_id, create_order)
+                      get_item_type_name_by_id, get_item_type_id_by_name, add_card, get_item_by_id,
+                      create_order, validate_card_details)
 
 import bcrypt
 import logging
@@ -559,3 +559,59 @@ async def subscribe(
     await add_newsletter_mail(newsletter_in)
     print(f"Created mail: {newsletter_in}")
     return RedirectResponse(url="/", status_code=303)
+
+
+@router.get("/payment/")
+async def payment_page(request: Request):
+    address = request.query_params.get("address")
+    return templates.TemplateResponse(request, "payment_form.html", {
+        "count": count,
+        "address": address
+    })
+
+
+@router.post("/process_payment/")
+async def process_payment(
+    request: Request,
+    card_owner: str = Form(...),
+    card_number: str = Form(...),
+    expiry_date: str = Form(...),
+    cvv: str = Form(...)
+):
+    # 1. Validate payment details (mock validation for now)
+    if not validate_card_details(card_owner, card_number, expiry_date, cvv):
+        return {"msg": "Invalid payment details", "success": False}
+
+    # 2. Get user ID from the JWT token
+    token = request.cookies.get("JWT")
+    if not token:
+        return JSONResponse(content={"msg": "Unauthorized", "success": False}, status_code=401)
+
+    decoded_token = decode_token(token)
+    user_id = decoded_token.id
+
+    # 3. Get the cart items for the user
+    # cart_content = await get_cart_items_for_user(user_id)  # Ensure this function is implemented
+    cart_content = redis_get_from_cart(user_id=user_id)
+    # Convert the keys and values of cart_content to integers
+    cart_content = {int(item_id): int(quantity) for item_id, quantity in cart_content.items()}
+    # print(f'Cart content: {cart_content}')
+
+    # 4. Get the address from the form data
+    form_data = await request.form()
+    address = form_data.get("address")
+    # print(f'Address value: {address}')
+    if not address:
+        return JSONResponse(content={"msg": "Address is required", "success": False})
+
+    # 5. Create the order using the create_order function
+    try:
+        order_details = await create_order(user_id, address, cart_content)
+    except Exception as e:
+        print(f"Error creating order: {e}")
+        return JSONResponse(content={"msg": "Failed to create order", "success": False}, status_code=500)
+
+    # 6. Return success response
+    redis_clear_cart(user_id)
+    return JSONResponse(
+        content={"msg": "Payment successful and order placed", "success": True, "order_id": order_details["order_id"]})

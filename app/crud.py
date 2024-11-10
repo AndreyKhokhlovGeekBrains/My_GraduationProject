@@ -1,6 +1,6 @@
 # database operations
 from cart.redis_client import client
-from .models import users, newsletter_subscriptions, tokens, products, item_type, cards, orders, order_items
+from .models import users, newsletter_subscriptions, tokens, products, item_type, orders, order_items
 from .db import database
 from sqlalchemy import select, insert, update
 from typing import Optional
@@ -184,9 +184,9 @@ async def get_items_by_category(gender: str, item_type_in: Optional[str] = None)
     return items_by_category
 
 
-async def is_user_have_card(user_id: int):
-    query = select(cards).where(cards.c.user_id == user_id)
-    return await database.fetch_one(query)
+# async def is_user_have_card(user_id: int):
+#     query = select(cards).where(cards.c.user_id == user_id)
+#     return await database.fetch_one(query)
 
 
 async def load_featured_items():
@@ -317,10 +317,10 @@ async def delete_user(user_id: int):
     await database.execute(query)
 
 
-async def add_order_to_db(order_in):
-    print("Creating order:", order_in.dict())
-    query = orders.insert().values(**order_in.dict())
-    return await database.execute(query)
+# async def add_order_to_db(order_in):
+#     print("Creating order:", order_in.dict())
+#     query = orders.insert().values(**order_in.dict())
+#     return await database.execute(query)
 
 
 async def find_items_by_name(name: str):
@@ -375,7 +375,7 @@ async def create_order(user_id: int, address: str, cart_content: dict):
         # Iterate through the cart content and add items to the order
         for item_id, quantity in cart_content.items():
             # Fetch the item details from the database
-            item = await get_item_by_id(item_id)  # Make sure this function is defined correctly
+            item = await get_item_by_id(item_id)
             if not item:
                 continue  # Skip if the item is not found
 
@@ -384,10 +384,13 @@ async def create_order(user_id: int, address: str, cart_content: dict):
             total_amount += item_total
 
             # Insert the order item into the order_items table
+            item_discount = float(item.discount or 0)
+
             order_item_insert_query = insert(order_items).values(
                 order_id=order_id,
                 product_id=item.id,
                 price=float(item.price),
+                discount=item_discount,
                 quantity=quantity
             )
             await database.execute(order_item_insert_query)
@@ -395,6 +398,7 @@ async def create_order(user_id: int, address: str, cart_content: dict):
                 "order_id": order_id,
                 "product_id": item.id,
                 "price": float(item.price),
+                "discount": item_discount,
                 "quantity": quantity
             })
 
@@ -403,3 +407,10 @@ async def create_order(user_id: int, address: str, cart_content: dict):
         await database.execute(update_query)
 
     return {"order_id": order_id, "order_items": order_items_list}
+
+
+# a simple function to mock the validation of payment details.
+# In a real-world scenario, you would integrate with a payment gateway like Stripe or PayPal
+def validate_card_details(card_owner, card_number, expiry_date, cvv):
+    # Implement real payment validation or integration with a payment gateway
+    return True

@@ -645,6 +645,20 @@ form[role="search"] input {
   max-width: 450px;
 }
 
+.delivery-address {
+  font-weight: 500;
+}
+
+.order {
+  margin-left: 15px;
+}
+
+.order-summary {
+  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .my-action .add-item {
   display: flex;
   justify-content: flex-start;
@@ -704,6 +718,17 @@ form[role="search"] input {
   gap: 10px;
 }
 
+.my-action .payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-action .payment-form .description {
+  display: flex;
+  justify-content: space-between;
+}
+
 .my-action .description {
   display: flex;
   justify-content: start;
@@ -754,12 +779,17 @@ form[role="search"] input {
 .add-order-button {
   display: flex;
   justify-content: center;
-  padding: 10px 15px;
+  padding: 10px 25px;
   border-radius: 5px;
   border: 1px solid #f26376;
   color: #f26376;
   max-width: 212px;
   margin: 10px 30px;
+}
+
+.pay-btn {
+  padding: 8px 40px;
+  font-weight: 600;
 }
 
 .my-action .delete-item {
@@ -780,8 +810,22 @@ form[role="search"] input {
   justify-content: space-around;
 }
 
+.order-item {
+  gap: 10px;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.item-details p {
+  margin: 0;
+}
+
 .cart-item img {
-  width: revert-layer;
+  max-width: 200px;
   height: auto;
 }
 
