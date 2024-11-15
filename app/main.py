@@ -53,7 +53,6 @@ async def custom_404_handler(request: Request, exc):
 
 
 # uvicorn app.main:app --reload
-# git push -u origin dev1
 # pip install -r requirements.txt
 # docker-compose up
 # - ./pgdata:/var/lib/postgresql/data
