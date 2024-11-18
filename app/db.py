@@ -2,7 +2,6 @@
 from databases import Database
 import sqlalchemy
 
-# Use environment variable to switch between local and Docker environments
 DATABASE_URL = "postgresql://postgres:68064911@localhost:5432/postgres"
 
 engine = sqlalchemy.create_engine(url=DATABASE_URL)

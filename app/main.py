@@ -8,7 +8,6 @@ from cart import cart_router
 from app.crud import populate_item_types
 import os
 
-# Use an absolute path for the static directory
 static_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "../static"))
 templates_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "../templates"))
 
